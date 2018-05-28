@@ -14,24 +14,34 @@ namespace sc2
 
         public SC2APIProtocol.Action TrainSCV(Unit cc)
         {
-            SC2APIProtocol.Action answer = NewAction();
-            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-            answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.TRAIN_SCV;
-            answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
-            return answer;
+            if (!coolDownCommand.IsDelayed("TrainSCV"))
+            {
+                coolDownCommand.Add(new CoolDownCommandData() { key = "TrainSCV", finishStep = gameLoop + 10 });
+                SC2APIProtocol.Action answer = NewAction();
+                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.TRAIN_SCV;
+                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                return answer;
+            }
+            return null;
         }
         public SC2APIProtocol.Action BuildSupply(Unit cc)
         {
-            SC2APIProtocol.Action answer = NewAction();
-            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-            answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_SUPPLYDEPOT;
-            answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
-            Random r = new Random();
-            Point2D pos = new Point2D();
-            pos.X = (float)(cc.Pos.X + r.NextDouble() * 15.0f);
-            pos.Y = (float)(cc.Pos.Y + r.NextDouble() * 15.0f);
-            answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
-            return answer;
+            if (!coolDownCommand.IsDelayed("BuildSupply"))
+            {
+                coolDownCommand.Add(new CoolDownCommandData() { key = "BuildSupply", finishStep = gameLoop + 10 });
+                SC2APIProtocol.Action answer = NewAction();
+                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_SUPPLYDEPOT;
+                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                Random r = new Random();
+                Point2D pos = new Point2D();
+                pos.X = (float)(cc.Pos.X + r.NextDouble() * 15.0f);
+                pos.Y = (float)(cc.Pos.Y + r.NextDouble() * 15.0f);
+                answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
+                return answer;
+            }
+            return null;
         }
         public SC2APIProtocol.Action BuildBarrak(Unit cc)
         {
@@ -97,7 +107,7 @@ namespace sc2
             {
                 case UNIT_TYPEID.TERRAN_COMMANDCENTER:
                     {
-                        if (HasResouce(50,0,1) && (u.AssignedHarvesters < u.IdealHarvesters))
+                        if (HasResouce(50,0,1) && (u.AssignedHarvesters < u.IdealHarvesters) )
                         {
                             action = TrainSCV(u);
                         }
@@ -116,12 +126,24 @@ namespace sc2
                 logDebug(action.ToString());
             }else
             {
-                if (u.UnitType != (int)UNIT_TYPEID.TERRAN_SUPPLYDEPOT)
-                {
+                //if (u.UnitType != (int)UNIT_TYPEID.TERRAN_SUPPLYDEPOT)
+                //{
                     logDebug("Idle " + u.ToString());
-                }
+                //}
             }
             return action;
+        }
+        public int CountBuildingOnProgress(List<Unit> SCVs, ABILITY_ID id)
+        {
+            int ret = 0;
+            foreach(Unit scv in SCVs)
+            {
+                if (HasOrder(scv, id))
+                {
+                    ret++;
+                }
+            }
+            return ret;
         }
         public override SC2APIProtocol.Action Process()
         {
@@ -132,8 +154,11 @@ namespace sc2
             List<Unit> Supplys = GetMyUnits(UNIT_TYPEID.TERRAN_SUPPLYDEPOT);
             List<Unit> Refineries = GetMyUnits(UNIT_TYPEID.TERRAN_REFINERY);
             List<Unit> Barracks = GetMyUnits(UNIT_TYPEID.TERRAN_BARRACKS);
-            logPrintf("CC {0} SCV {1} SUPPLY {2} REFINERY {3} BARRAKS {4}", 
-                CCs.Count, SCVs.Count, Supplys.Count, Refineries.Count, Barracks.Count);
+            int supplyBuildingProgress = CountBuildingOnProgress(SCVs, ABILITY_ID.BUILD_SUPPLYDEPOT);
+            logPrintf("CC {0} SCV {1} SUPPLY {2} + {5} REFINERY {3} BARRAKS {4}", 
+                CCs.Count, SCVs.Count, Supplys.Count, Refineries.Count, Barracks.Count,
+                supplyBuildingProgress
+            );
             Unit scv = null;
             foreach (Unit u in SCVs)
             {
@@ -151,7 +176,7 @@ namespace sc2
             }
             if (scv != null)
             {
-                if (HasResouce(100, 0, 0) && (GetAvailableSupplyRoom() < 5))
+                if (HasResouce(100, 0, 0) && (GetAvailableSupplyRoom() < 5) && (supplyBuildingProgress < 1))
                 {
                     SC2APIProtocol.Action ret = BuildSupply(scv);
                     if (ret != null)
@@ -170,7 +195,7 @@ namespace sc2
                         return ret;
                     }
                 }
-                if(HasResouce(150, 0, 0) && (Supplys.Count > 1) && (Barracks.Count < 1))
+                if(HasResouce(150, 0, 0) && (Supplys.Count >0) && (Barracks.Count < 1))
                 {
                     if (!coolDownCommand.IsDelayed("BuildBarrak"))
                     {

@@ -6,9 +6,17 @@ using System.Threading.Tasks;
 using Google.Protobuf.Collections;
 using SC2APIProtocol;
 using Starcraft2;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace sc2
 {
+    public abstract class ISCBot
+    {
+        public abstract void Init(GameState gameState);
+        public abstract SC2APIProtocol.Action Update(GameState gameState);
+    }
+
     public class CoolDownCommandData
     {
         public String key;
@@ -73,6 +81,18 @@ namespace sc2
         public override void Init(GameState gameState)
         {
             logDebug(this.GetType().Name);
+            {
+                Bitmap b = gameState.GameInfo.StartRaw.TerrainHeight.ToBitmap();
+                b.Save(@"TerrainHeight.bmp", ImageFormat.Bmp);
+            }
+            {
+                Bitmap b = gameState.GameInfo.StartRaw.PlacementGrid.ToBitmap();
+                b.Save(@"PlacementGrid.bmp", ImageFormat.Bmp);
+            }
+            {
+                Bitmap b = gameState.GameInfo.StartRaw.PathingGrid.ToBitmap();
+                b.Save(@"PathingGrid.bmp", ImageFormat.Bmp);
+            }
         }
 
         public override SC2APIProtocol.Action Update(GameState gameState)
@@ -99,6 +119,11 @@ namespace sc2
                 Init(gameState);
                 return answer;
             }
+            if(gameLoop%50 == 0)
+            {
+                DumpUnits();
+                DumpImage();
+            }
             //DoIdle
             foreach(Unit a in GetMyUnits())
             {
@@ -121,7 +146,14 @@ namespace sc2
             return ret;
         }
 
+        public void DumpImage()
+        {
+            {
+                Bitmap b = gameState.NewObservation.Observation.RawData.MapState.Visibility.ToBitmap();
+                b.Save(@"Visibility.bmp", ImageFormat.Bmp);
+            }
 
+        }
 
         public void DumpUnits()
         {
@@ -146,7 +178,7 @@ namespace sc2
             return ret;
         }
 
-        public float Dist(Point p1, Point p2)
+        public float Dist(SC2APIProtocol.Point p1, SC2APIProtocol.Point p2)
         {
             float dx = p1.X - p2.X;
             float dy = p1.Y - p2.Y;

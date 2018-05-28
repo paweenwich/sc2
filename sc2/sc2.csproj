@@ -73,6 +73,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SC2Bot.cs" />
     <Compile Include="SC2Enum.cs" />
+    <Compile Include="SC2Extend.cs" />
     <Compile Include="TerranBot.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>

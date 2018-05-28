@@ -9,21 +9,7 @@ using System.Windows.Forms;
 
 namespace sc2
 {
-    public enum BuildingID
-    {
-        CommandCenter = 18,
-    }
 
-    public enum BuildingTrainingID
-    {
-        SCV = 524,
-    }
-
-    public abstract class ISCBot
-    {
-        public abstract void Init(GameState gameState);
-        public abstract SC2APIProtocol.Action Update(GameState gameState);
-    }
 
     static class Program
     {
