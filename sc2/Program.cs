@@ -1,0 +1,83 @@
+﻿using Google.Protobuf.Collections;
+using SC2APIProtocol;
+using Starcraft2;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace sc2
+{
+    public enum BuildingID
+    {
+        CommandCenter = 18,
+    }
+
+    public enum BuildingTrainingID
+    {
+        SCV = 524,
+    }
+
+    public abstract class ISCBot
+    {
+        public abstract void Init(GameState gameState);
+        public abstract SC2APIProtocol.Action Update(GameState gameState);
+    }
+
+    static class Program
+    {
+        /// <summary>
+        /// The main entry point for the application.
+        /// </summary>
+        //[STAThread]
+        static ISCBot bot = new TerranBot();
+        static void Main()
+        {
+            /*Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new Form1());*/
+            var userSettings = Sc2SettingsFile.settingsFromUserDir();
+            var instanceSettings = Instance.StartSettings.OfUserSettings(userSettings);
+
+            Func<Instance.Sc2Instance> createInstance =
+                () => Runner.run(Instance.start(instanceSettings));
+
+            var participants = new Sc2Game.Participant[] {
+                    Sc2Game.Participant.CreateParticipant(
+                    createInstance(),
+                    Race.Terran,
+                    //(state => (IEnumerable<SC2APIProtocol.Action>)new SC2APIProtocol.Action[] {})),
+                    MasterAgent_MainLoop),
+                    Sc2Game.Participant.CreateComputer(Race.Terran, Difficulty.VeryEasy)
+            };
+
+            var gameSettings =
+                Sc2Game.GameSettings.OfUserSettings(userSettings)
+                .WithMap(@"Simple64.SC2Map")
+                .WithRealtime(true)
+                //.WithStepsize(10)
+                ;
+            //.WithRealtime(true);
+
+            // Runs the game to the end with the given bots / map and configuration
+            try
+            {
+                var obj = Sc2Game.runGame(gameSettings, participants);
+                Runner.run(obj);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+
+        }
+
+        public static IEnumerable<SC2APIProtocol.Action> MasterAgent_MainLoop(GameState gameState)
+        {
+
+            SC2APIProtocol.Action answer = bot.Update(gameState);
+            yield return answer;
+        }
+    }
+}
