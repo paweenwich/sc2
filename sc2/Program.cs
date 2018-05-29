@@ -17,12 +17,22 @@ namespace sc2
         /// The main entry point for the application.
         /// </summary>
         //[STAThread]
-        static ISCBot bot = new TerranBot();
+        public static ISCBot bot = new TerranBot();
         static void Main()
         {
-            /*Application.EnableVisualStyles();
+            Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());*/
+            Application.Run(new Form1());
+        }
+
+        public static IEnumerable<SC2APIProtocol.Action> MasterAgent_MainLoop(GameState gameState)
+        {
+
+            SC2APIProtocol.Action answer = bot.Update(gameState);
+            yield return answer;
+        }
+        public static void RunSC2()
+        {
             var userSettings = Sc2SettingsFile.settingsFromUserDir();
             var instanceSettings = Instance.StartSettings.OfUserSettings(userSettings);
 
@@ -56,14 +66,6 @@ namespace sc2
             {
                 Console.WriteLine(ex.ToString());
             }
-
-        }
-
-        public static IEnumerable<SC2APIProtocol.Action> MasterAgent_MainLoop(GameState gameState)
-        {
-
-            SC2APIProtocol.Action answer = bot.Update(gameState);
-            yield return answer;
         }
     }
 }

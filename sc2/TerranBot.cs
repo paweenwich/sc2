@@ -34,12 +34,13 @@ namespace sc2
                 answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
                 answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_SUPPLYDEPOT;
                 answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
-                Random r = new Random();
-                Point2D pos = new Point2D();
-                pos.X = (float)(cc.Pos.X + r.NextDouble() * 15.0f);
-                pos.Y = (float)(cc.Pos.Y + r.NextDouble() * 15.0f);
-                answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
-                return answer;
+                Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 10, 2);
+                if (pos != null)
+                {
+                    logDebug("BuildSupply at " + pos.ToString());
+                    answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
+                    return answer;
+                }
             }
             return null;
         }
@@ -49,12 +50,15 @@ namespace sc2
             answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
             answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_BARRACKS;
             answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
-            Random r = new Random();
-            Point2D pos = new Point2D();
-            pos.X = (float)(cc.Pos.X + r.NextDouble() * 15.0f);
-            pos.Y = (float)(cc.Pos.Y + r.NextDouble() * 15.0f);
-            answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
-            return answer;
+            Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 10, 3);
+            if (pos != null)
+            {
+                logDebug("BuildBarrak at " + pos.ToString());
+                answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
+                //DumpImage();
+                return answer;
+            }
+            return null;
         }
         public SC2APIProtocol.Action BuildGas(Unit cc)
         {
@@ -99,6 +103,22 @@ namespace sc2
             return null;
         }
 
+        public override SC2APIProtocol.Action OnCommand(SC2Command cmd)
+        {
+            List<Unit> SCVs = GetMyUnits(UNIT_TYPEID.TERRAN_SCV);
+            SC2APIProtocol.Action answer = NewAction();
+            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+            switch (cmd.type)
+            {
+                case SC2CommandType.BUILD_SUPPLY: answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_SUPPLYDEPOT;break;
+                case SC2CommandType.BUILD_BARRAK: answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_BARRACKS; break;
+            }
+            
+            answer.ActionRaw.UnitCommand.UnitTags.Add(SCVs[0].Tag);
+            logDebug(cmd.ToString());
+            answer.ActionRaw.UnitCommand.TargetWorldSpacePos = cmd.targetPos;
+            return answer;
+        }
 
         public override SC2APIProtocol.Action DoIdle(Unit u)
         {
@@ -145,13 +165,14 @@ namespace sc2
             }
             return ret;
         }
+        
         public override SC2APIProtocol.Action Process()
         {
             SC2APIProtocol.Action answer = NewAction();
             Observation obs = gameState.NewObservation.Observation;
             List<Unit> CCs = GetMyUnits(UNIT_TYPEID.TERRAN_COMMANDCENTER);
             List<Unit> SCVs = GetMyUnits(UNIT_TYPEID.TERRAN_SCV);
-            List<Unit> Supplys = GetMyUnits(UNIT_TYPEID.TERRAN_SUPPLYDEPOT);
+            List<Unit> Supplys = GetMyUnits(UNIT_TYPEID.TERRAN_SUPPLYDEPOT,true);
             List<Unit> Refineries = GetMyUnits(UNIT_TYPEID.TERRAN_REFINERY);
             List<Unit> Barracks = GetMyUnits(UNIT_TYPEID.TERRAN_BARRACKS);
             int supplyBuildingProgress = CountBuildingOnProgress(SCVs, ABILITY_ID.BUILD_SUPPLYDEPOT);
@@ -176,6 +197,7 @@ namespace sc2
             }
             if (scv != null)
             {
+                //return answer;
                 if (HasResouce(100, 0, 0) && (GetAvailableSupplyRoom() < 5) && (supplyBuildingProgress < 1))
                 {
                     SC2APIProtocol.Action ret = BuildSupply(scv);

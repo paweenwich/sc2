@@ -15,7 +15,24 @@ namespace sc2
     {
         public abstract void Init(GameState gameState);
         public abstract SC2APIProtocol.Action Update(GameState gameState);
+        public abstract void SendCommand(SC2Command cmd);
     }
+
+    public enum SC2CommandType 
+    {
+        BUILD_SUPPLY=1,BUILD_BARRAK
+    }
+
+    public class SC2Command
+    {
+        public SC2CommandType type;
+        public Point2D targetPos;
+        public override string ToString()
+        {
+            return type.ToString() + " " + targetPos.ToString();
+        }
+    }
+
 
     public class CoolDownCommandData
     {
@@ -49,8 +66,21 @@ namespace sc2
         }
         public override String ToString()
         {
-            String ret = "{" + String.Join(",", this.Select( x => x.Value.key + " " + x.Value.finishStep).ToArray()) + "}";
+            String ret = "{" + String.Join(",", this.Select(x => x.Value.key + " " + x.Value.finishStep).ToArray()) + "}";
             return ret;
+        }
+    }
+
+    public class SC2ImageData
+    {
+        public Bitmap bmp;
+        public ImageData imgData;
+        //public byte[] data;
+        public SC2ImageData(ImageData imgData)
+        {
+            bmp = imgData.ToBitmap();
+            //data = imgData.Data.ToByteArray();
+            this.imgData = imgData;
         }
     }
 
@@ -61,6 +91,13 @@ namespace sc2
         public int gameLoop = 0;
         public GameState gameState;
         public CoolDownCommand coolDownCommand = new CoolDownCommand();
+        public List<SC2Command> commandQueue  = new List<SC2Command>();
+        public Bitmap bmpTerrainHeight;
+        //public Bitmap bmpPlacementGrid;
+        public SC2ImageData terrainHeightData;
+        public SC2ImageData placementData;
+        public SC2ImageData pathingGridData; 
+
         public void logDebug(String data)
         {
             Console.WriteLine(data);
@@ -78,21 +115,26 @@ namespace sc2
             return answer;
         }
 
+        public override void SendCommand(SC2Command cmd)
+        {
+            commandQueue.Add(cmd);
+        }
+
         public override void Init(GameState gameState)
         {
             logDebug(this.GetType().Name);
-            {
-                Bitmap b = gameState.GameInfo.StartRaw.TerrainHeight.ToBitmap();
-                b.Save(@"TerrainHeight.bmp", ImageFormat.Bmp);
-            }
-            {
-                Bitmap b = gameState.GameInfo.StartRaw.PlacementGrid.ToBitmap();
-                b.Save(@"PlacementGrid.bmp", ImageFormat.Bmp);
-            }
-            {
-                Bitmap b = gameState.GameInfo.StartRaw.PathingGrid.ToBitmap();
-                b.Save(@"PathingGrid.bmp", ImageFormat.Bmp);
-            }
+            terrainHeightData = new SC2ImageData(gameState.GameInfo.StartRaw.TerrainHeight);
+            terrainHeightData.bmp.Save(@"TerrainHeight.bmp", ImageFormat.Bmp);
+            terrainHeightData.imgData.ToDebugBitmap().Save(@"TerrainHeightDebug.png", ImageFormat.Png);
+
+            placementData = new SC2ImageData(gameState.GameInfo.StartRaw.PlacementGrid);
+            placementData.bmp.Save(@"PlacementGrid.bmp", ImageFormat.Bmp);
+            placementData.imgData.Save(@"PlacementGrid.bin");
+            placementData.imgData.ToDebugBitmap().Save(@"PlacementGridDebug.png", ImageFormat.Png);
+
+            pathingGridData = new SC2ImageData(gameState.GameInfo.StartRaw.PathingGrid);
+            pathingGridData.bmp.Save(@"PathingGrid.bmp", ImageFormat.Bmp);
+            pathingGridData.imgData.ToDebugBitmap().Save(@"PathingGridDebug.png", ImageFormat.Png);
         }
 
         public override SC2APIProtocol.Action Update(GameState gameState)
@@ -124,6 +166,18 @@ namespace sc2
                 DumpUnits();
                 DumpImage();
             }
+            //
+            if (commandQueue.Count > 0)
+            {
+                SC2Command cmd = commandQueue[0];
+                commandQueue.RemoveAt(0);
+                logPrintf("onCommand {0}", cmd.ToString());
+                SC2APIProtocol.Action action = OnCommand(cmd);
+                if(action != null)
+                {
+                    return action;
+                }
+            }
             //DoIdle
             foreach(Unit a in GetMyUnits())
             {
@@ -146,11 +200,51 @@ namespace sc2
             return ret;
         }
 
+        public Pen penRed = new Pen(System.Drawing.Color.Red,1);
+        public Pen penGreen = new Pen(System.Drawing.Color.Green,1);
+        public Pen penBlue = new Pen(System.Drawing.Color.Blue,1);
+        public Pen penWhite = new Pen(System.Drawing.Color.White, 1);
+        public Pen penYellow = new Pen(System.Drawing.Color.Yellow, 1);
+        public Random rand = new Random();
         public void DumpImage()
         {
             {
                 Bitmap b = gameState.NewObservation.Observation.RawData.MapState.Visibility.ToBitmap();
                 b.Save(@"Visibility.bmp", ImageFormat.Bmp);
+
+                //Pen myPen = new Pen(System.Drawing.Color.Green, 1);
+                Bitmap bg = placementData.bmp;
+                float scale = 10.0f;
+                RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
+                Bitmap bv = new Bitmap((int)(bg.Width * scale),(int)(bg.Height * scale), PixelFormat.Format32bppArgb);
+                Graphics g = Graphics.FromImage(bv);
+                g.Clear(System.Drawing.Color.Black);
+                g.DrawImage(bg, 0, 0, bv.Width, bv.Height);
+                for(int x=0;x< bg.Width; x++)
+                {
+                    int px = (int)(x * scale);
+                    g.DrawLine(penYellow, px, 0, px, bv.Height);
+                }
+                for (int y = 0; y < bg.Height; y++)
+                {
+                    int py = (int)(y * scale);
+                    g.DrawLine(penYellow, 0,py, bv.Width, py);
+                }
+
+                foreach (Unit u in allUnits)
+                {
+                    Pen pen = penWhite;
+                    switch (u.Alliance)
+                    {
+                        case Alliance.Enemy: pen = penRed; break;
+                        case Alliance.Neutral: pen = penGreen; break;
+                        case Alliance.Self: pen = penBlue;break;
+                    }
+                    g.DrawCircle(pen, u.Pos.X * scale,(b.Height - u.Pos.Y) * scale, u.Radius * scale);
+                }
+                g.Save();
+                g.Dispose();
+                bv.Save(@"Units.png", ImageFormat.Png);
             }
 
         }
@@ -164,26 +258,56 @@ namespace sc2
             }
         }
 
-        public List<Unit> GetMyUnits(UNIT_TYPEID unitType = UNIT_TYPEID.INVALID)
+        public bool IsNotOverlapWithUnit(Point2D point,float rad)
+        {
+            RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
+            foreach (Unit u in allUnits)
+            {
+                if (u.OverlapWith(point.X,point.Y,rad))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public Point2D FindPlaceable(int x,int y,int rad,int size)
+        {
+            for(int i = 0; i < 100; i++)
+            {
+                int px = rand.Next(x - rad, x + rad);
+                int py = rand.Next(y - rad, y + rad);
+                if (placementData.imgData.IsPlaceable(px, py, size))
+                {
+                    Point2D ret = new Point2D();
+                    ret.X = px + (float) (size/2.0);
+                    ret.Y = py + (float) (size / 2.0);
+                    if (IsNotOverlapWithUnit(ret, (float)(size / 2.0)))
+                    {
+                        return ret;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public List<Unit> GetMyUnits(UNIT_TYPEID unitType = UNIT_TYPEID.INVALID,bool countBuilding = false)
         {
             RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
             List<Unit> ret = new List<Unit>();
             foreach (Unit u in allUnits)
             {
-                if ((u.Alliance == Alliance.Self) && ((u.UnitType == (int)unitType) || (unitType == UNIT_TYPEID.INVALID)))
-                {
+                if (
+                    (u.Alliance == Alliance.Self) && ((u.UnitType == (int)unitType) || (unitType == UNIT_TYPEID.INVALID))
+                    &&((countBuilding == false) || ((countBuilding == true) && (u.BuildProgress == 1)))
+                ){
                     ret.Add(u);
                 }
             }
             return ret;
         }
 
-        public float Dist(SC2APIProtocol.Point p1, SC2APIProtocol.Point p2)
-        {
-            float dx = p1.X - p2.X;
-            float dy = p1.Y - p2.Y;
-            return (float)Math.Sqrt(dx * dx + dy * dy);
-        }
+      
         public Unit FindNearest(Unit myUnit, UNIT_TYPEID unitType,bool checkHarvest = false)
         {
             Unit ret = null;
@@ -200,7 +324,7 @@ namespace sc2
                 }
                 if((u.UnitType == (int)unitType)&&(u.Tag != myUnit.Tag))
                 {
-                    float dist = Dist(myUnit.Pos, u.Pos);
+                    float dist = myUnit.Pos.Dist(u.Pos);
                     if(dist < minDist)
                     {
                         ret = u;
@@ -254,6 +378,11 @@ namespace sc2
             logPrintf("Game loop {0}", obs.GameLoop);
             DumpUnits();
             return answer;
+        }
+
+        public virtual SC2APIProtocol.Action OnCommand(SC2Command cmd)
+        {
+            return null;
         }
 
         public virtual SC2APIProtocol.Action DoIdle(Unit u)
