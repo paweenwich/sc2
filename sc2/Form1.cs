@@ -60,43 +60,9 @@ namespace sc2
 
         private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TerranBuildPattern[] rampPattens = new TerranBuildPattern[] {
-                new TerranBuildPattern()
-                {
-                    pattern = new byte[4][]
-                    {
-                        new byte[4] {142,143,143,143},
-                        new byte[4] {142,143,143,143},
-                        new byte[4] {142,142,143,143},
-                        new byte[4] {142,142,142,142},
-                    },
-                    data = new TerranBuildPatternData[]
-                    {
-                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
-                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
-                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
-                    },
-                },
-                new TerranBuildPattern()
-                {
-                    pattern = new byte[4][]
-                    {
-                        new byte[4] {143,142,142,142},
-                        new byte[4] {143,143,143,142},
-                        new byte[4] {143,143,143,143},
-                        new byte[4] {143,143,143,143},
-                    },
-                    data = new TerranBuildPatternData[]
-                    {
-                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
-                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
-                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
-                    },
-                },
-            };
             ImageData data = new ImageData();
             data.Load(@"TerrainHeight.bin");
-            foreach(TerranBuildPattern tbp in rampPattens)
+            foreach(TerranBuildPattern tbp in TerranData.rampPattens)
             {
                 List<Point2D> ramp = data.FindPattern(tbp.pattern);
                 foreach (Point2D p in ramp)
@@ -107,14 +73,5 @@ namespace sc2
         }
     }
 
-    public class TerranBuildPatternData
-    {
-        public String name;
-        public Point2D offset;
-    }
-    public class TerranBuildPattern
-    {
-        public byte[][] pattern;
-        public TerranBuildPatternData[] data;
-    }
+
 }

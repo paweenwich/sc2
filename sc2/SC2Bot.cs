@@ -84,6 +84,11 @@ namespace sc2
         }
     }
 
+    public class SC2UnitState
+    {
+        public Point2D rallyPoint; 
+    }
+
     public class SC2Bot : ISCBot
     {
         protected int prevStep = -1;
@@ -97,6 +102,7 @@ namespace sc2
         public SC2ImageData terrainHeightData;
         public SC2ImageData placementData;
         public SC2ImageData pathingGridData; 
+        public Dictionary<ulong, SC2UnitState> unitStates= new Dictionary<ulong, SC2UnitState>();
 
         public void logDebug(String data)
         {
@@ -137,6 +143,7 @@ namespace sc2
             pathingGridData.bmp.Save(@"PathingGrid.png", ImageFormat.Png);
             pathingGridData.imgData.Save(@"PathingGrid.bin");
             pathingGridData.imgData.ToDebugBitmap().Save(@"PathingGridDebug.png", ImageFormat.Png);
+            OnInit(gameState);
         }
 
         public override SC2APIProtocol.Action Update(GameState gameState)
@@ -146,9 +153,9 @@ namespace sc2
             this.gameLoop = (int)gameState.NewObservation.Observation.GameLoop;
             coolDownCommand.Update(this.gameLoop);
             logPrintf("{0} Update {1} {2}", this.GetType().Name, this.gameLoop, coolDownCommand.ToString());
-            if(gameState.NewObservation.Observation.GameLoop == prevStep)
+            if (gameState.NewObservation.Observation.GameLoop == prevStep)
             {
-                logPrintf("Skip same step {0}",prevStep);
+                logPrintf("Skip same step {0}", prevStep);
                 return answer;
             }
             prevStep = (int)gameState.NewObservation.Observation.GameLoop;
@@ -163,7 +170,7 @@ namespace sc2
                 Init(gameState);
                 return answer;
             }
-            if(gameLoop%50 == 0)
+            if (gameLoop % 50 == 0)
             {
                 DumpUnits();
                 DumpImage();
@@ -175,13 +182,23 @@ namespace sc2
                 commandQueue.RemoveAt(0);
                 logPrintf("onCommand {0}", cmd.ToString());
                 SC2APIProtocol.Action action = OnCommand(cmd);
-                if(action != null)
+                if (action != null)
                 {
                     return action;
                 }
             }
+            // Create Tag here
+            RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
+            foreach (Unit a in allUnits)
+            { 
+                if (!unitStates.ContainsKey(a.Tag))
+                {
+                    unitStates[a.Tag] = new SC2UnitState();
+                }
+            }
+
             //DoIdle
-            foreach(Unit a in GetMyUnits())
+            foreach (Unit a in GetMyUnits())
             {
                 if (IsIdle(a)) 
                 {
@@ -379,6 +396,11 @@ namespace sc2
         public virtual SC2APIProtocol.Action DoIdle(Unit u)
         {
             return null;
+        }
+
+        public virtual void OnInit(GameState gameState)
+        {
+
         }
     }
 }

@@ -76,6 +76,7 @@
     <Compile Include="SC2Extend.cs" />
     <Compile Include="SC2ExtendImageData.cs" />
     <Compile Include="TerranBot.cs" />
+    <Compile Include="TerranData.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>

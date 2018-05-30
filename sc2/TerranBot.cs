@@ -11,6 +11,42 @@ namespace sc2
 {
     public class TerranBot: SC2Bot
     {
+        public Dictionary<Point2D, TerranBuildPattern> rampData = new Dictionary<Point2D, TerranBuildPattern>();
+
+        public SC2APIProtocol.Action MorphOrbital(Unit cc)
+        {
+            logDebug("MorphOrbital");
+            SC2APIProtocol.Action answer = NewAction();
+            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+            answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.MORPH_ORBITALCOMMAND;
+            answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+            return answer;
+        }
+
+        public SC2APIProtocol.Action SetRallyPoint(Unit cc)
+        {
+            if (!coolDownCommand.IsDelayed("SetRallyPoint"))
+            {
+                SC2APIProtocol.Action answer = NewAction();
+                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.RALLY_BUILDING;
+                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                //Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 10, 3);
+                Point2D pos = FindNearestRanmp(cc);
+                if (pos != null)
+                {
+                    Point2D offset = rampData[pos].data["Rally"];
+                    Point2D rallyPos = pos.Clone();
+                    rallyPos.X += offset.X;
+                    rallyPos.Y += offset.Y;
+                    coolDownCommand.Add(new CoolDownCommandData() { key = "SetRallyPoint", finishStep = gameLoop + 10 });
+                    logDebug("SetRallyPoint at " + rallyPos.ToString());
+                    answer.ActionRaw.UnitCommand.TargetWorldSpacePos = rallyPos;
+                    return answer;
+                }
+            }
+            return null;
+        }
 
         public SC2APIProtocol.Action TrainSCV(Unit cc)
         {
@@ -139,14 +175,27 @@ namespace sc2
             SC2APIProtocol.Action action = null;
             switch ((UNIT_TYPEID)u.UnitType)
             {
-                case UNIT_TYPEID.TERRAN_COMMANDCENTER:
+                case UNIT_TYPEID.TERRAN_ORBITALCOMMAND:
                     {
-                        if (HasResouce(50,0,1) && (u.AssignedHarvesters < u.IdealHarvesters) )
+                        if (HasResouce(50, 0, 1) && (u.AssignedHarvesters < u.IdealHarvesters))
                         {
                             action = TrainSCV(u);
                         }
                         break;
                     }
+                case UNIT_TYPEID.TERRAN_COMMANDCENTER:
+                    {
+                        if (HasResouce(150, 0, 0))
+                        {
+                            action = MorphOrbital(u);
+
+                        }else if (HasResouce(50,0,1) && (u.AssignedHarvesters < u.IdealHarvesters) )
+                        {
+                            action = TrainSCV(u);
+                        }
+                        break;
+                    }
+
                 case UNIT_TYPEID.TERRAN_SCV:
                     {
                         action = GatherMineral(u);
@@ -154,9 +203,20 @@ namespace sc2
                     }
                 case UNIT_TYPEID.TERRAN_BARRACKS:
                     {
-                        if (HasResouce(50,0,1))
+                        if (unitStates[u.Tag].rallyPoint == null)
                         {
-                            action = TrainMarine(u);
+                            action = SetRallyPoint(u);
+                            if (action != null)
+                            {
+                                unitStates[u.Tag].rallyPoint = action.ActionRaw.UnitCommand.TargetWorldSpacePos;
+                            }
+                        }
+                        else
+                        {
+                            if (HasResouce(50, 0, 1))
+                            {
+                                action = TrainMarine(u);
+                            }
                         }
                         break;
                     }
@@ -187,7 +247,42 @@ namespace sc2
             }
             return ret;
         }
+
+        public Point2D FindNearestRanmp(Unit u)
+        {
+            float minDist = 10000;
+            Point2D ret = null;
+            foreach (Point2D p in rampData.Keys)
+            {
+                float dist = u.Pos.Dist(p.X, p.Y);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    ret = p;
+                }
+            }
+            return ret;
+        }
         
+        public override void OnInit(GameState gameState)
+        {
+            //Seqarch for ramp
+            foreach (TerranBuildPattern tbp in TerranData.rampPattens)
+            {
+                List<Point2D> ramp = terrainHeightData.imgData.FindPattern(tbp.pattern);
+                foreach (Point2D p in ramp)
+                {
+                    Point2D gamePos = p.Clone();
+                    gamePos.Y = terrainHeightData.imgData.Size.Y - gamePos.Y;
+                    rampData[gamePos] = tbp;
+                    logDebug("OnInit found ramp at " + p.ToString() +  " game at " + gamePos.ToString());
+                }
+            }
+        }
+
+
+
+
         public override SC2APIProtocol.Action Process()
         {
             SC2APIProtocol.Action answer = NewAction();
@@ -239,7 +334,7 @@ namespace sc2
                         return ret;
                     }
                 }
-                if(HasResouce(150, 0, 0) && (Supplys.Count >0) && (Barracks.Count < 1))
+                if(HasResouce(150, 0, 0) && (Supplys.Count >0) && (Barracks.Count < 3))
                 {
                     if (!coolDownCommand.IsDelayed("BuildBarrak"))
                     {
@@ -252,6 +347,7 @@ namespace sc2
                         }
                     }
                 }
+
                 if (Refineries.Count > 0) {
                     if (!coolDownCommand.IsDelayed("GatherGas"))
                     {
