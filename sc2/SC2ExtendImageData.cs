@@ -27,7 +27,7 @@ namespace sc2
             return ByteArrayToBitmap(imgData.Data.ToByteArray(), imgData.Size.X, imgData.Size.Y);
         }
 
-        public static Bitmap ToDebugBitmap(this ImageData imgData, float scale = 50.0f)
+        public static Bitmap ToDebugBitmap(this ImageData imgData, float scale = 50.0f, bool flgColor = false)
         {
             Font drawFont = new Font("Arial", 10);
             SolidBrush drawBrush = new SolidBrush(System.Drawing.Color.Yellow);
@@ -38,6 +38,31 @@ namespace sc2
             g.Clear(System.Drawing.Color.Black);
             for (int x = 0; x < imgData.Size.X; x++)
             {
+                for (int y = 0; y < imgData.Size.Y; y++)
+                {
+                    byte value = imgData.GetValue(x, y);
+                    if (flgColor)
+                    {
+                        System.Drawing.Color color = System.Drawing.Color.FromArgb(value, value, value);
+                        switch (value)
+                        {
+                            case 127: color = System.Drawing.Color.Black; break;
+                            case 134: color = System.Drawing.Color.Orange; break;
+                            case 135: color = System.Drawing.Color.OrangeRed; break;
+                            case 143: color = System.Drawing.Color.Brown; break;
+                            case 142: color = System.Drawing.Color.Green; break;
+                            case 141: color = System.Drawing.Color.Lime; break;
+                            case 140: color = System.Drawing.Color.Cyan; break;
+                        }
+                        g.FillRectangle(new SolidBrush(color), new Rectangle((int)(x * scale), (int)(y * scale), (int)scale, (int)scale));
+                    }
+                    g.DrawString("" + value, drawFont, drawBrush2, new PointF((float)(x) * scale, (float)(y+0.5) * scale));
+                    g.DrawString(String.Format("{0},{1}",x, imgData.Size.Y - y), drawFont, drawBrush, new PointF((float)(x) * scale, (float)(y) * scale));
+
+                }
+            }
+            for (int x = 0; x < imgData.Size.X; x++)
+            {
                 int px = (int)(x * scale);
                 g.DrawLine(pen, px, 0, px, bv.Height);
             }
@@ -45,16 +70,6 @@ namespace sc2
             {
                 int py = (int)(y * scale);
                 g.DrawLine(pen, 0, py, bv.Width, py);
-            }
-            for (int x = 0; x < imgData.Size.X; x++)
-            {
-                for (int y = 0; y < imgData.Size.Y; y++)
-                {
-                    byte value = imgData.GetValue(x, y);
-                    g.DrawString("" + value, drawFont, drawBrush2, new PointF((float)(x) * scale, (float)(y+0.5) * scale));
-                    g.DrawString(String.Format("{0},{1}",x, imgData.Size.Y - y), drawFont, drawBrush, new PointF((float)(x) * scale, (float)(y) * scale));
-
-                }
             }
 
             g.Save();
@@ -98,6 +113,42 @@ namespace sc2
             }
             return true;
         }
-
+        // return list of data cordinate
+        public static List<Point2D> FindPattern(this ImageData imgdata,byte[][] pattern)
+        {
+            List<Point2D> ret = new List<Point2D>();
+            for (int y = 0; y < imgdata.Size.Y - pattern.Length; y++)
+            {
+                for (int x = 0; x < imgdata.Size.X - pattern[0].Length; x++)
+                {
+                    bool found = true;
+                    for(int j =0; j< pattern.Length; j++)
+                    {
+                        for (int i = 0; i < pattern[0].Length; i++)
+                        {
+                            int px = x + i;
+                            int py = y + j;
+                            if(imgdata.GetValue(px,py) != pattern[j][i])
+                            {
+                                found = false;
+                                break;
+                            }
+                        }
+                        if(found == false)
+                        {
+                            break;
+                        }
+                    }
+                    if(found == true)
+                    {
+                        Point2D p = new Point2D();
+                        p.X = x;
+                        p.Y = y;
+                        ret.Add(p);
+                    }
+                }
+            }
+            return ret;
+        }
     }
 }

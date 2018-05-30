@@ -30,31 +30,14 @@ namespace sc2
         private void test1ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ImageData data = new ImageData();
-            data.Load(@"PlacementGrid.bin");
+            data.Load(@"TerrainHeight.bin");
             //Console.WriteLine(data.ToString());
-            Bitmap bmp = data.ToDebugBitmap();
+            Bitmap bmp = data.ToDebugBitmap(50f,true);
             Graphics g = Graphics.FromImage(bmp);
             Random r = new Random();
-            float scale = 50.0f;
-            for(int i = 0; i < 10; i++)
-            {
-                while (true)
-                {
-                    int x = r.Next(data.Size.X);
-                    int y = r.Next(data.Size.Y);
-                    int size = 3;
-                    float rad = (float)(size / 2.0);
-                    if(data.IsPlaceable(x,y, 3))
-                    {
-                        g.DrawCircle(new Pen(System.Drawing.Color.Red, 2), (int) ((x+rad)*scale), (int) ((y+rad)*scale), rad*scale);
-                        g.DrawRectangle(new Pen(System.Drawing.Color.Red, 2),(int) x * scale,(int) y * scale,(int) size * scale, (int) size * scale);
-                        break;
-                    }
-                }
-            }
             g.Save();
             g.Dispose();
-            bmp.Save(@"PlacementGridDebug.png", ImageFormat.Png);
+            bmp.Save(@"TerrainHeightDebug2.png", ImageFormat.Png);
         }
 
         private void sendCommandToolStripMenuItem_Click(object sender, EventArgs e)
@@ -74,5 +57,64 @@ namespace sc2
                 Console.WriteLine(cmd.ToString());
             }
         }
+
+        private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            TerranBuildPattern[] rampPattens = new TerranBuildPattern[] {
+                new TerranBuildPattern()
+                {
+                    pattern = new byte[4][]
+                    {
+                        new byte[4] {142,143,143,143},
+                        new byte[4] {142,143,143,143},
+                        new byte[4] {142,142,143,143},
+                        new byte[4] {142,142,142,142},
+                    },
+                    data = new TerranBuildPatternData[]
+                    {
+                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
+                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
+                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
+                    },
+                },
+                new TerranBuildPattern()
+                {
+                    pattern = new byte[4][]
+                    {
+                        new byte[4] {143,142,142,142},
+                        new byte[4] {143,143,143,142},
+                        new byte[4] {143,143,143,143},
+                        new byte[4] {143,143,143,143},
+                    },
+                    data = new TerranBuildPatternData[]
+                    {
+                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
+                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
+                        new TerranBuildPatternData() { name="", offset = new Point2D() {X = 0,Y=0 } },
+                    },
+                },
+            };
+            ImageData data = new ImageData();
+            data.Load(@"TerrainHeight.bin");
+            foreach(TerranBuildPattern tbp in rampPattens)
+            {
+                List<Point2D> ramp = data.FindPattern(tbp.pattern);
+                foreach (Point2D p in ramp)
+                {
+                    Console.WriteLine(p.ToString());
+                }
+            }
+        }
+    }
+
+    public class TerranBuildPatternData
+    {
+        public String name;
+        public Point2D offset;
+    }
+    public class TerranBuildPattern
+    {
+        public byte[][] pattern;
+        public TerranBuildPatternData[] data;
     }
 }

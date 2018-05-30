@@ -25,6 +25,20 @@ namespace sc2
             }
             return null;
         }
+        public SC2APIProtocol.Action TrainMarine(Unit cc)
+        {
+            if (!coolDownCommand.IsDelayed("TrainMarine"))
+            {
+                coolDownCommand.Add(new CoolDownCommandData() { key = "TrainMarine", finishStep = gameLoop + 10 });
+                SC2APIProtocol.Action answer = NewAction();
+                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.TRAIN_MARINE;
+                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                return answer;
+            }
+            return null;
+        }
+        
         public SC2APIProtocol.Action BuildSupply(Unit cc)
         {
             if (!coolDownCommand.IsDelayed("BuildSupply"))
@@ -136,6 +150,14 @@ namespace sc2
                 case UNIT_TYPEID.TERRAN_SCV:
                     {
                         action = GatherMineral(u);
+                        break;
+                    }
+                case UNIT_TYPEID.TERRAN_BARRACKS:
+                    {
+                        if (HasResouce(50,0,1))
+                        {
+                            action = TrainMarine(u);
+                        }
                         break;
                     }
             }

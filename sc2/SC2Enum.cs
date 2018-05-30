@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+//https://raw.githubusercontent.com/Blizzard/s2client-api/master/include/sc2api/sc2_typeenums.h 
 namespace sc2
 {
     public enum UNIT_TYPEID

@@ -124,16 +124,18 @@ namespace sc2
         {
             logDebug(this.GetType().Name);
             terrainHeightData = new SC2ImageData(gameState.GameInfo.StartRaw.TerrainHeight);
-            terrainHeightData.bmp.Save(@"TerrainHeight.bmp", ImageFormat.Bmp);
+            terrainHeightData.bmp.Save(@"TerrainHeight.png", ImageFormat.Png);
+            terrainHeightData.imgData.Save(@"TerrainHeight.bin");
             terrainHeightData.imgData.ToDebugBitmap().Save(@"TerrainHeightDebug.png", ImageFormat.Png);
 
             placementData = new SC2ImageData(gameState.GameInfo.StartRaw.PlacementGrid);
-            placementData.bmp.Save(@"PlacementGrid.bmp", ImageFormat.Bmp);
+            placementData.bmp.Save(@"PlacementGrid.png", ImageFormat.Png);
             placementData.imgData.Save(@"PlacementGrid.bin");
             placementData.imgData.ToDebugBitmap().Save(@"PlacementGridDebug.png", ImageFormat.Png);
 
             pathingGridData = new SC2ImageData(gameState.GameInfo.StartRaw.PathingGrid);
-            pathingGridData.bmp.Save(@"PathingGrid.bmp", ImageFormat.Bmp);
+            pathingGridData.bmp.Save(@"PathingGrid.png", ImageFormat.Png);
+            pathingGridData.imgData.Save(@"PathingGrid.bin");
             pathingGridData.imgData.ToDebugBitmap().Save(@"PathingGridDebug.png", ImageFormat.Png);
         }
 
@@ -200,11 +202,11 @@ namespace sc2
             return ret;
         }
 
-        public Pen penRed = new Pen(System.Drawing.Color.Red,1);
-        public Pen penGreen = new Pen(System.Drawing.Color.Green,1);
-        public Pen penBlue = new Pen(System.Drawing.Color.Blue,1);
-        public Pen penWhite = new Pen(System.Drawing.Color.White, 1);
-        public Pen penYellow = new Pen(System.Drawing.Color.Yellow, 1);
+        public Pen penRed = new Pen(System.Drawing.Color.Red,2);
+        public Pen penGreen = new Pen(System.Drawing.Color.Green,2);
+        public Pen penBlue = new Pen(System.Drawing.Color.Blue,2);
+        public Pen penWhite = new Pen(System.Drawing.Color.White, 2);
+        public Pen penYellow = new Pen(System.Drawing.Color.Yellow, 2);
         public Random rand = new Random();
         public void DumpImage()
         {
@@ -214,23 +216,12 @@ namespace sc2
 
                 //Pen myPen = new Pen(System.Drawing.Color.Green, 1);
                 Bitmap bg = placementData.bmp;
-                float scale = 10.0f;
+                float scale = 50.0f;
                 RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
-                Bitmap bv = new Bitmap((int)(bg.Width * scale),(int)(bg.Height * scale), PixelFormat.Format32bppArgb);
+                Bitmap bv = terrainHeightData.imgData.ToDebugBitmap(scale, true);
+                //Bitmap bv = new Bitmap((int)(bg.Width * scale),(int)(bg.Height * scale), PixelFormat.Format32bppArgb);
                 Graphics g = Graphics.FromImage(bv);
-                g.Clear(System.Drawing.Color.Black);
-                g.DrawImage(bg, 0, 0, bv.Width, bv.Height);
-                for(int x=0;x< bg.Width; x++)
-                {
-                    int px = (int)(x * scale);
-                    g.DrawLine(penYellow, px, 0, px, bv.Height);
-                }
-                for (int y = 0; y < bg.Height; y++)
-                {
-                    int py = (int)(y * scale);
-                    g.DrawLine(penYellow, 0,py, bv.Width, py);
-                }
-
+                //g.Clear(System.Drawing.Color.Black);
                 foreach (Unit u in allUnits)
                 {
                     Pen pen = penWhite;
