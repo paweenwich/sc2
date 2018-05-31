@@ -299,7 +299,16 @@ namespace sc2
         {
             foreach(Unit u in allUnits)
             {
+                /*if (u.UnitType == (int)UNIT_TYPEID.TERRAN_BARRACKS)
+                {
+                    logDebug("BARRAK " + u.ToString() + " " + IsIdle(u).ToString());
+                }
+                if (u.UnitType == (int)UNIT_TYPEID.TERRAN_MARINE)
+                {
+                    logDebug("MARINE " + u.ToString() + " " + IsIdle(u).ToString());
+                }*/
                 logDebug(u.ToString());
+
             }
         }
 

@@ -118,21 +118,21 @@ namespace sc2
         }
         public SC2APIProtocol.Action TrainMarine(Unit cc)
         {
-            if (!coolDownCommand.IsDelayed("TrainMarine"))
-            {
-                coolDownCommand.Add(new CoolDownCommandData() { key = "TrainFromBarrak", finishStep = gameLoop + 10 });
+            //if (!coolDownCommand.IsDelayed("TrainFromBarrak"))
+            //{
+                //coolDownCommand.Add(new CoolDownCommandData() { key = "TrainFromBarrak", finishStep = gameLoop + 10 });
                 return TrainFromBarrak(cc, ABILITY_ID.TRAIN_MARINE);
-            }
-            return null;
+            //}
+            //return null;
         }
         public SC2APIProtocol.Action TrainMarauder(Unit cc)
         {
-            if (!coolDownCommand.IsDelayed("TrainMarauder"))
-            {
-                coolDownCommand.Add(new CoolDownCommandData() { key = "TrainFromBarrak", finishStep = gameLoop + 10 });
+            //if (!coolDownCommand.IsDelayed("TrainFromBarrak"))
+            //{
+                //coolDownCommand.Add(new CoolDownCommandData() { key = "TrainFromBarrak", finishStep = gameLoop + 10 });
                 return TrainFromBarrak(cc, ABILITY_ID.TRAIN_MARAUDER);
-            }
-            return null;
+            //}
+            //return null;
         }
 
         public SC2APIProtocol.Action TrainFromBarrak(Unit cc, ABILITY_ID ability)
@@ -266,7 +266,7 @@ namespace sc2
                 Unit attatch = GetUnitFromTag(u.AddOnTag);
                 if (attatch != null)
                 {
-                    if(attatch.UnitType == (int)UNIT_TYPEID.TERRAN_REACTOR)
+                    if((attatch.UnitType == (int)UNIT_TYPEID.TERRAN_REACTOR)||(attatch.UnitType == (int)UNIT_TYPEID.TERRAN_BARRACKSREACTOR))
                     {
                         num = 2;
                     }
@@ -352,14 +352,14 @@ namespace sc2
             }
             if(action != null)
             {
-                Observation obs = gameState.NewObservation.Observation;
-                logDebug("Idle " + u.ToString());
+                //Observation obs = gameState.NewObservation.Observation;
+                //logDebug("Idle " + u.ToString());
                 logDebug(action.ToString());
             }else
             {
                 //if (u.UnitType != (int)UNIT_TYPEID.TERRAN_SUPPLYDEPOT)
                 //{
-                    logDebug("Idle " + u.ToString());
+                    //logDebug("Idle " + u.ToString());
                 //}
             }
             return action;
@@ -426,9 +426,16 @@ namespace sc2
             List<Unit> Barracks = GetMyUnits(UNIT_TYPEID.TERRAN_BARRACKS);
             List<Unit> ArmyUnits =  GetMyArmyUnits();
             int supplyBuildingProgress = CountBuildingOnProgress(SCVs, ABILITY_ID.BUILD_SUPPLYDEPOT);
-            logPrintf("CC {0} OCC {6} SCV {1} SUPPLY {2} + {5} REFINERY {3} BARRAKS {4} ARMY {7}", 
+            int barrakIdleCount = 0;
+            foreach(Unit u in Barracks){
+                if (IsIdle(u))
+                {
+                    barrakIdleCount++;
+                }
+            }
+            logPrintf("CC {0} OCC {6} SCV {1} SUPPLY {2} + {5} REFINERY {3} BARRAKS {4} {8} ARMY {7}", 
                 CCs.Count, SCVs.Count, Supplys.Count, Refineries.Count, Barracks.Count,
-                supplyBuildingProgress, OCCs.Count, ArmyUnits.Count
+                supplyBuildingProgress, OCCs.Count, ArmyUnits.Count, barrakIdleCount
             );
             Unit scv = null;
             foreach (Unit u in SCVs)
