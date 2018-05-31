@@ -23,6 +23,7 @@ namespace sc2
         private void runToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Program.bot = new TerranBot();
+            chkAuto.Checked = Program.bot.GetBoolProperty("Auto");
             Thread newThread = new Thread(Program.RunSC2);
             newThread.Start();
         }
@@ -42,7 +43,7 @@ namespace sc2
 
         private void sendCommandToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            String[] input = txtInput.Text.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            /*String[] input = txtInput.Text.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if(input.Length == 2)
             {
                 float v1 = (float)Double.Parse(input[0]);
@@ -55,7 +56,8 @@ namespace sc2
                 cmd.targetPos.Y = v2;
                 Program.bot.SendCommand(cmd);
                 Console.WriteLine(cmd.ToString());
-            }
+            }*/
+            TerranBot tb = (TerranBot)Program.bot;
         }
 
         private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -70,6 +72,12 @@ namespace sc2
                     Console.WriteLine(p.ToString());
                 }
             }
+        }
+
+        private void autoToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            Console.WriteLine(chkAuto.Checked.ToString());
+            Program.bot.SetBoolProperty("Auto", chkAuto.Checked);
         }
     }
 

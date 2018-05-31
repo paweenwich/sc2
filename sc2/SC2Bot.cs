@@ -16,11 +16,13 @@ namespace sc2
         public abstract void Init(GameState gameState);
         public abstract SC2APIProtocol.Action Update(GameState gameState);
         public abstract void SendCommand(SC2Command cmd);
+        public abstract void SetBoolProperty(String name,bool value);
+        public abstract bool GetBoolProperty(String name);
     }
 
     public enum SC2CommandType 
     {
-        BUILD_SUPPLY=1,BUILD_BARRAK
+        BUILD_SUPPLY=1,BUILD_BARRAK,MORPH_ORBITAL
     }
 
     public class SC2Command
@@ -29,7 +31,13 @@ namespace sc2
         public Point2D targetPos;
         public override string ToString()
         {
-            return type.ToString() + " " + targetPos.ToString();
+            if (targetPos != null)
+            {
+                return type.ToString() + " " + targetPos.ToString();
+            }else
+            {
+                return type.ToString();
+            }
         }
     }
 
@@ -103,6 +111,7 @@ namespace sc2
         public SC2ImageData placementData;
         public SC2ImageData pathingGridData; 
         public Dictionary<ulong, SC2UnitState> unitStates= new Dictionary<ulong, SC2UnitState>();
+        public Dictionary<String, bool> boolProperty = new Dictionary<String, bool>();
 
         public void logDebug(String data)
         {
@@ -126,6 +135,20 @@ namespace sc2
             commandQueue.Add(cmd);
         }
 
+        public override void SetBoolProperty(string name, bool value)
+        {
+            boolProperty[name] = value;
+        }
+        public override bool GetBoolProperty(string name)
+        {
+            return boolProperty[name];
+        }
+
+        public SC2Bot()
+        {
+            SetBoolProperty("Auto", true);
+        }
+
         public override void Init(GameState gameState)
         {
             logDebug(this.GetType().Name);
@@ -143,6 +166,7 @@ namespace sc2
             pathingGridData.bmp.Save(@"PathingGrid.png", ImageFormat.Png);
             pathingGridData.imgData.Save(@"PathingGrid.bin");
             pathingGridData.imgData.ToDebugBitmap().Save(@"PathingGridDebug.png", ImageFormat.Png);
+
             OnInit(gameState);
         }
 
@@ -197,26 +221,32 @@ namespace sc2
                 }
             }
 
-            //DoIdle
-            foreach (Unit a in GetMyUnits())
+            if (GetBoolProperty("Auto"))
             {
-                if (IsIdle(a)) 
+                //DoIdle
+                foreach (Unit a in GetMyUnits())
                 {
-                    SC2APIProtocol.Action action = DoIdle(a);
-                    if (action != null)
+                    if (IsIdle(a))
                     {
-                        return action;
+                        SC2APIProtocol.Action action = DoIdle(a);
+                        if (action != null)
+                        {
+                            return action;
+                        }
                     }
                 }
-            }
-            SC2APIProtocol.Action ret = Process();
-            if(ret == null)
+                SC2APIProtocol.Action ret = Process();
+                if (ret == null)
+                {
+                    logDebug("Warning: process() return null");
+                    ret = answer;
+                }
+                logDebug(ret.ToString());
+                return ret;
+            }else
             {
-                logDebug("Warning: process() return null");
-                ret = answer;
+                return answer;
             }
-            logDebug(ret.ToString());
-            return ret;
         }
 
         public Pen penRed = new Pen(System.Drawing.Color.Red,2);
@@ -402,5 +432,6 @@ namespace sc2
         {
 
         }
+
     }
 }

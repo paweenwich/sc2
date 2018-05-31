@@ -185,11 +185,11 @@ namespace sc2
                     }
                 case UNIT_TYPEID.TERRAN_COMMANDCENTER:
                     {
-                        if (HasResouce(150, 0, 0))
+                        /*if (HasResouce(150, 0, 0))
                         {
                             action = MorphOrbital(u);
 
-                        }else if (HasResouce(50,0,1) && (u.AssignedHarvesters < u.IdealHarvesters) )
+                        }else*/ if (HasResouce(50,0,1) && (u.AssignedHarvesters < u.IdealHarvesters) )
                         {
                             action = TrainSCV(u);
                         }
