@@ -32,12 +32,13 @@
             this.starCraftToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendCommandToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.optionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkAuto = new System.Windows.Forms.ToolStripMenuItem();
             this.debugToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtInput = new System.Windows.Forms.TextBox();
-            this.actionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.chkAuto = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkLog = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -46,7 +47,7 @@
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(20, 20);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.starCraftToolStripMenuItem,
-            this.actionToolStripMenuItem,
+            this.optionToolStripMenuItem,
             this.debugToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -76,6 +77,24 @@
             this.sendCommandToolStripMenuItem.Size = new System.Drawing.Size(186, 26);
             this.sendCommandToolStripMenuItem.Text = "SendCommand";
             this.sendCommandToolStripMenuItem.Click += new System.EventHandler(this.sendCommandToolStripMenuItem_Click);
+            // 
+            // optionToolStripMenuItem
+            // 
+            this.optionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.chkAuto,
+            this.chkLog});
+            this.optionToolStripMenuItem.Name = "optionToolStripMenuItem";
+            this.optionToolStripMenuItem.Size = new System.Drawing.Size(67, 24);
+            this.optionToolStripMenuItem.Text = "Option";
+            // 
+            // chkAuto
+            // 
+            this.chkAuto.CheckOnClick = true;
+            this.chkAuto.Name = "chkAuto";
+            this.chkAuto.Size = new System.Drawing.Size(181, 26);
+            this.chkAuto.Tag = "Auto";
+            this.chkAuto.Text = "Auto";
+            this.chkAuto.CheckedChanged += new System.EventHandler(this.autoToolStripMenuItem_CheckedChanged);
             // 
             // debugToolStripMenuItem
             // 
@@ -109,21 +128,14 @@
             this.txtInput.Size = new System.Drawing.Size(437, 22);
             this.txtInput.TabIndex = 1;
             // 
-            // actionToolStripMenuItem
+            // chkLog
             // 
-            this.actionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.chkAuto});
-            this.actionToolStripMenuItem.Name = "actionToolStripMenuItem";
-            this.actionToolStripMenuItem.Size = new System.Drawing.Size(64, 24);
-            this.actionToolStripMenuItem.Text = "Action";
-            // 
-            // chkAuto
-            // 
-            this.chkAuto.CheckOnClick = true;
-            this.chkAuto.Name = "chkAuto";
-            this.chkAuto.Size = new System.Drawing.Size(181, 26);
-            this.chkAuto.Text = "Auto";
-            this.chkAuto.CheckedChanged += new System.EventHandler(this.autoToolStripMenuItem_CheckedChanged);
+            this.chkLog.CheckOnClick = true;
+            this.chkLog.Name = "chkLog";
+            this.chkLog.Size = new System.Drawing.Size(181, 26);
+            this.chkLog.Tag = "Log";
+            this.chkLog.Text = "Log";
+            this.chkLog.CheckedChanged += new System.EventHandler(this.autoToolStripMenuItem_CheckedChanged);
             // 
             // Form1
             // 
@@ -152,8 +164,9 @@
         private System.Windows.Forms.ToolStripMenuItem sendCommandToolStripMenuItem;
         private System.Windows.Forms.TextBox txtInput;
         private System.Windows.Forms.ToolStripMenuItem test2ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem actionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem optionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem chkAuto;
+        private System.Windows.Forms.ToolStripMenuItem chkLog;
     }
 }
 

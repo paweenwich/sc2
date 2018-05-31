@@ -109,13 +109,17 @@ namespace sc2
         //public Bitmap bmpPlacementGrid;
         public SC2ImageData terrainHeightData;
         public SC2ImageData placementData;
-        public SC2ImageData pathingGridData; 
+        public SC2ImageData pathingGridData;
+        public RepeatedField<Unit> allUnits;
         public Dictionary<ulong, SC2UnitState> unitStates= new Dictionary<ulong, SC2UnitState>();
         public Dictionary<String, bool> boolProperty = new Dictionary<String, bool>();
-
+        public Point2D[] startLocations;
         public void logDebug(String data)
         {
-            Console.WriteLine(data);
+            if (GetBoolProperty("Log"))
+            {
+                Console.WriteLine(data);
+            }
         }
         public void logPrintf(String format, params object[] param)
         {
@@ -147,11 +151,15 @@ namespace sc2
         public SC2Bot()
         {
             SetBoolProperty("Auto", true);
+            SetBoolProperty("Log", false);
         }
 
         public override void Init(GameState gameState)
         {
             logDebug(this.GetType().Name);
+            startLocations = gameState.GameInfo.StartRaw.StartLocations.ToArray();
+
+
             terrainHeightData = new SC2ImageData(gameState.GameInfo.StartRaw.TerrainHeight);
             terrainHeightData.bmp.Save(@"TerrainHeight.png", ImageFormat.Png);
             terrainHeightData.imgData.Save(@"TerrainHeight.bin");
@@ -175,6 +183,8 @@ namespace sc2
             SC2APIProtocol.Action answer = NewAction();
             this.gameState = gameState;
             this.gameLoop = (int)gameState.NewObservation.Observation.GameLoop;
+            this.allUnits = gameState.NewObservation.Observation.RawData.Units;
+
             coolDownCommand.Update(this.gameLoop);
             logPrintf("{0} Update {1} {2}", this.GetType().Name, this.gameLoop, coolDownCommand.ToString());
             if (gameState.NewObservation.Observation.GameLoop == prevStep)
@@ -212,7 +222,6 @@ namespace sc2
                 }
             }
             // Create Tag here
-            RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
             foreach (Unit a in allUnits)
             { 
                 if (!unitStates.ContainsKey(a.Tag))
@@ -264,7 +273,6 @@ namespace sc2
                 //Pen myPen = new Pen(System.Drawing.Color.Green, 1);
                 Bitmap bg = placementData.bmp;
                 float scale = 50.0f;
-                RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
                 Bitmap bv = terrainHeightData.imgData.ToDebugBitmap(scale, true);
                 //Bitmap bv = new Bitmap((int)(bg.Width * scale),(int)(bg.Height * scale), PixelFormat.Format32bppArgb);
                 Graphics g = Graphics.FromImage(bv);
@@ -289,7 +297,6 @@ namespace sc2
 
         public void DumpUnits()
         {
-            RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
             foreach(Unit u in allUnits)
             {
                 logDebug(u.ToString());
@@ -298,7 +305,6 @@ namespace sc2
 
         public bool IsNotOverlapWithUnit(Point2D point,float rad)
         {
-            RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
             foreach (Unit u in allUnits)
             {
                 if (u.OverlapWith(point.X,point.Y,rad))
@@ -311,7 +317,7 @@ namespace sc2
 
         public Point2D FindPlaceable(int x,int y,int rad,int size)
         {
-            for(int i = 0; i < 100; i++)
+            for(int i = 0; i < 500; i++)
             {
                 int px = rand.Next(x - rad, x + rad);
                 int py = rand.Next(y - rad, y + rad);
@@ -319,7 +325,7 @@ namespace sc2
                 {
                     Point2D ret = new Point2D();
                     ret.X = px + (float) (size/2.0);
-                    ret.Y = py + (float) (size / 2.0);
+                    ret.Y = py + (float) (size/2.0);
                     if (IsNotOverlapWithUnit(ret, (float)(size / 2.0)))
                     {
                         return ret;
@@ -329,9 +335,22 @@ namespace sc2
             return null;
         }
 
+        public List<Unit> GetMyArmyUnits()
+        {
+            List<Unit> ret = new List<Unit>();
+            foreach (Unit u in allUnits)
+            {
+                if (IsArmyUnit(u))
+                {
+                    ret.Add(u);
+                }
+            }
+            return ret;
+
+        }
+
         public List<Unit> GetMyUnits(UNIT_TYPEID unitType = UNIT_TYPEID.INVALID,bool countBuilding = false)
         {
-            RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
             List<Unit> ret = new List<Unit>();
             foreach (Unit u in allUnits)
             {
@@ -350,7 +369,6 @@ namespace sc2
         {
             Unit ret = null;
             float minDist = 10000;
-            RepeatedField<Unit> allUnits = gameState.NewObservation.Observation.RawData.Units;
             foreach (Unit u in allUnits)
             {
                 if (checkHarvest)
@@ -372,8 +390,18 @@ namespace sc2
             }
             return ret;
         }
-
-        public bool IsIdle(Unit u)
+        public Unit GetUnitFromTag(ulong tag)
+        {
+            foreach(Unit u in allUnits)
+            {
+                if(u.Tag == tag)
+                {
+                    return u;
+                }
+            }
+            return null;
+        }
+        public virtual bool IsIdle(Unit u)
         {
             return (u.Orders.Count == 0) && (u.BuildProgress == 1);
         }
@@ -431,6 +459,11 @@ namespace sc2
         public virtual void OnInit(GameState gameState)
         {
 
+        }
+
+        public virtual bool IsArmyUnit(Unit u)
+        {
+            throw new NotImplementedException("IsArmyUnit");
         }
 
     }
