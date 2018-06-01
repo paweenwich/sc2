@@ -34,11 +34,14 @@
             this.sendCommandToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.optionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.chkAuto = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkLog = new System.Windows.Forms.ToolStripMenuItem();
             this.debugToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtInput = new System.Windows.Forms.TextBox();
-            this.chkLog = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDumpNetural = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDumpSelf = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDumpEnemy = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -82,7 +85,10 @@
             // 
             this.optionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.chkAuto,
-            this.chkLog});
+            this.chkLog,
+            this.chkDumpNetural,
+            this.chkDumpSelf,
+            this.chkDumpEnemy});
             this.optionToolStripMenuItem.Name = "optionToolStripMenuItem";
             this.optionToolStripMenuItem.Size = new System.Drawing.Size(67, 24);
             this.optionToolStripMenuItem.Text = "Option";
@@ -96,6 +102,15 @@
             this.chkAuto.Text = "Auto";
             this.chkAuto.CheckedChanged += new System.EventHandler(this.autoToolStripMenuItem_CheckedChanged);
             // 
+            // chkLog
+            // 
+            this.chkLog.CheckOnClick = true;
+            this.chkLog.Name = "chkLog";
+            this.chkLog.Size = new System.Drawing.Size(181, 26);
+            this.chkLog.Tag = "Log";
+            this.chkLog.Text = "Log";
+            this.chkLog.CheckedChanged += new System.EventHandler(this.autoToolStripMenuItem_CheckedChanged);
+            // 
             // debugToolStripMenuItem
             // 
             this.debugToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -108,14 +123,14 @@
             // test1ToolStripMenuItem
             // 
             this.test1ToolStripMenuItem.Name = "test1ToolStripMenuItem";
-            this.test1ToolStripMenuItem.Size = new System.Drawing.Size(119, 26);
+            this.test1ToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.test1ToolStripMenuItem.Text = "Test1";
             this.test1ToolStripMenuItem.Click += new System.EventHandler(this.test1ToolStripMenuItem_Click);
             // 
             // test2ToolStripMenuItem
             // 
             this.test2ToolStripMenuItem.Name = "test2ToolStripMenuItem";
-            this.test2ToolStripMenuItem.Size = new System.Drawing.Size(119, 26);
+            this.test2ToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.test2ToolStripMenuItem.Text = "Test2";
             this.test2ToolStripMenuItem.Click += new System.EventHandler(this.test2ToolStripMenuItem_Click);
             // 
@@ -128,14 +143,32 @@
             this.txtInput.Size = new System.Drawing.Size(437, 22);
             this.txtInput.TabIndex = 1;
             // 
-            // chkLog
+            // chkDumpNetural
             // 
-            this.chkLog.CheckOnClick = true;
-            this.chkLog.Name = "chkLog";
-            this.chkLog.Size = new System.Drawing.Size(181, 26);
-            this.chkLog.Tag = "Log";
-            this.chkLog.Text = "Log";
-            this.chkLog.CheckedChanged += new System.EventHandler(this.autoToolStripMenuItem_CheckedChanged);
+            this.chkDumpNetural.CheckOnClick = true;
+            this.chkDumpNetural.Name = "chkDumpNetural";
+            this.chkDumpNetural.Size = new System.Drawing.Size(181, 26);
+            this.chkDumpNetural.Tag = "DumpNetural";
+            this.chkDumpNetural.Text = "DumpNetural";
+            this.chkDumpNetural.CheckedChanged += new System.EventHandler(this.autoToolStripMenuItem_CheckedChanged);
+            // 
+            // chkDumpSelf
+            // 
+            this.chkDumpSelf.CheckOnClick = true;
+            this.chkDumpSelf.Name = "chkDumpSelf";
+            this.chkDumpSelf.Size = new System.Drawing.Size(181, 26);
+            this.chkDumpSelf.Tag = "DumpSelf";
+            this.chkDumpSelf.Text = "DumpSelf";
+            this.chkDumpSelf.CheckedChanged += new System.EventHandler(this.autoToolStripMenuItem_CheckedChanged);
+            // 
+            // chkDumpEnemy
+            // 
+            this.chkDumpEnemy.CheckOnClick = true;
+            this.chkDumpEnemy.Name = "chkDumpEnemy";
+            this.chkDumpEnemy.Size = new System.Drawing.Size(181, 26);
+            this.chkDumpEnemy.Tag = "DumpEnemy";
+            this.chkDumpEnemy.Text = "DumpEnemy";
+            this.chkDumpEnemy.CheckedChanged += new System.EventHandler(this.autoToolStripMenuItem_CheckedChanged);
             // 
             // Form1
             // 
@@ -167,6 +200,9 @@
         private System.Windows.Forms.ToolStripMenuItem optionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem chkAuto;
         private System.Windows.Forms.ToolStripMenuItem chkLog;
+        private System.Windows.Forms.ToolStripMenuItem chkDumpNetural;
+        private System.Windows.Forms.ToolStripMenuItem chkDumpSelf;
+        private System.Windows.Forms.ToolStripMenuItem chkDumpEnemy;
     }
 }
 

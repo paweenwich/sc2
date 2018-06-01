@@ -18,12 +18,7 @@ namespace sc2
             if (!coolDownCommand.IsDelayed("BuildOption"))
             {
                 coolDownCommand.Add(new CoolDownCommandData() { key = "BuildOption", finishStep = gameLoop + 10 });
-                SC2APIProtocol.Action answer = NewAction();
-                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-                answer.ActionRaw.UnitCommand.AbilityId = (int)ability;
-                answer.ActionRaw.UnitCommand.UnitTags.Add(u.Tag);
-
-                return answer;
+                return CreateAction(u, ability);
             }
             return null;
         }
@@ -266,7 +261,7 @@ namespace sc2
                 Unit attatch = GetUnitFromTag(u.AddOnTag);
                 if (attatch != null)
                 {
-                    if((attatch.UnitType == (int)UNIT_TYPEID.TERRAN_REACTOR)||(attatch.UnitType == (int)UNIT_TYPEID.TERRAN_BARRACKSREACTOR))
+                    if(/*(attatch.UnitType == (int)UNIT_TYPEID.TERRAN_REACTOR)||*/(attatch.UnitType == (int)UNIT_TYPEID.TERRAN_BARRACKSREACTOR))
                     {
                         num = 2;
                     }
@@ -280,6 +275,29 @@ namespace sc2
             SC2APIProtocol.Action action = null;
             switch ((UNIT_TYPEID)u.UnitType)
             {
+                case UNIT_TYPEID.TERRAN_BARRACKSTECHLAB:
+                    {
+                        if(HasResouce(100, 100, 0))
+                        {
+                            if (!unitStates[u.Tag].researched.Contains(ABILITY_ID.RESEARCH_COMBATSHIELD))
+                            {
+                                action = BuildOption(u, ABILITY_ID.RESEARCH_COMBATSHIELD);
+                                unitStates[u.Tag].researched.Add(ABILITY_ID.RESEARCH_COMBATSHIELD);
+                                break;
+                            }
+                        }
+                        if (HasResouce(100, 100, 0))
+                        {
+                            if (!unitStates[u.Tag].researched.Contains(ABILITY_ID.RESEARCH_STIMPACK))
+                            {
+                                action = BuildOption(u, ABILITY_ID.RESEARCH_STIMPACK);
+                                unitStates[u.Tag].researched.Add(ABILITY_ID.RESEARCH_STIMPACK);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+
                 case UNIT_TYPEID.TERRAN_ORBITALCOMMAND:
                     {
                         if (u.Energy > 50)
@@ -329,8 +347,8 @@ namespace sc2
                             {
                                 if ((rand.Next() % 2) == 1)
                                 {
-                                    //action = BuildOption(u, ABILITY_ID.BUILD_TECHLAB_BARRACKS);
-                                    action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
+                                    action = BuildOption(u, ABILITY_ID.BUILD_TECHLAB_BARRACKS);
+                                    //action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
                                 }
                                 else
                                 {

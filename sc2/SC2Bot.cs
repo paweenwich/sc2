@@ -94,7 +94,8 @@ namespace sc2
 
     public class SC2UnitState
     {
-        public Point2D rallyPoint; 
+        public Point2D rallyPoint;
+        public HashSet<ABILITY_ID> researched = new HashSet<ABILITY_ID>();
     }
 
     public class SC2Bot : ISCBot
@@ -152,6 +153,9 @@ namespace sc2
         {
             SetBoolProperty("Auto", true);
             SetBoolProperty("Log", false);
+            SetBoolProperty("DumpNetural", false);
+            SetBoolProperty("DumpSelf", true);
+            SetBoolProperty("DumpEnemy", true);
         }
 
         public override void Init(GameState gameState)
@@ -299,16 +303,21 @@ namespace sc2
         {
             foreach(Unit u in allUnits)
             {
-                /*if (u.UnitType == (int)UNIT_TYPEID.TERRAN_BARRACKS)
+                if((u.Alliance == Alliance.Neutral) && (GetBoolProperty("DumpNetural")))
                 {
-                    logDebug("BARRAK " + u.ToString() + " " + IsIdle(u).ToString());
+                    logDebug(u.ToStringEx());
+                    continue;
                 }
-                if (u.UnitType == (int)UNIT_TYPEID.TERRAN_MARINE)
+                if ((u.Alliance == Alliance.Self) && (GetBoolProperty("DumpSelf")))
                 {
-                    logDebug("MARINE " + u.ToString() + " " + IsIdle(u).ToString());
-                }*/
-                logDebug(u.ToString());
-
+                    logDebug(u.ToStringEx());
+                    continue;
+                }
+                if ((u.Alliance == Alliance.Enemy) && (GetBoolProperty("DumpEnemy")))
+                {
+                    logDebug(u.ToStringEx());
+                    continue;
+                }
             }
         }
 
@@ -444,6 +453,16 @@ namespace sc2
             }
             return false;
         }
+
+        public virtual SC2APIProtocol.Action CreateAction(Unit u, ABILITY_ID ability)
+        {
+            SC2APIProtocol.Action answer = NewAction();
+            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+            answer.ActionRaw.UnitCommand.AbilityId = (int)ability;
+            answer.ActionRaw.UnitCommand.UnitTags.Add(u.Tag);
+            return answer;
+        }
+
 
         public virtual SC2APIProtocol.Action Process()
         {

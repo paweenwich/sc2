@@ -25,6 +25,9 @@ namespace sc2
             Program.bot = new TerranBot();
             chkAuto.Checked = Program.bot.GetBoolProperty((String)chkAuto.Tag);
             chkLog.Checked = Program.bot.GetBoolProperty((String)chkLog.Tag);
+            chkDumpEnemy.Checked = Program.bot.GetBoolProperty((String)chkDumpEnemy.Tag);
+            chkDumpNetural.Checked = Program.bot.GetBoolProperty((String)chkDumpNetural.Tag);
+            chkDumpSelf.Checked = Program.bot.GetBoolProperty((String)chkDumpSelf.Tag);
             Thread newThread = new Thread(Program.RunSC2);
             newThread.Start();
         }

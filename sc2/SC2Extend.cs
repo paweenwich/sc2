@@ -52,6 +52,11 @@ namespace sc2
             return (d < (self.Radius + range + 1));
         }
 
+        public static String ToStringEx(this Unit self)
+        {
+            return Enum.GetName(typeof(UNIT_TYPEID),self.UnitType) + " " + self.ToString();
+        }
+
 
     }
 
