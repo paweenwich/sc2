@@ -145,10 +145,10 @@ namespace sc2
                     case Alliance.Neutral: pen = penGreen; break;
                     case Alliance.Self: pen = penBlue; break;
                 }
-                if(u.UnitType == (int)UNIT_TYPEID.TERRAN_SUPPLYDEPOT)
-                {
+                //if(u.UnitType == (int)UNIT_TYPEID.TERRAN_SUPPLYDEPOT)
+                //{
 
-                    if (isPlaceable(u, placeMap, allUnits))
+                    if(isPlaceable(u, placeMap, allUnits)||(u.IntSize()<1)||(u.Alliance == Alliance.Neutral))
                     {
 
                         g.DrawCircle(pen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
@@ -158,11 +158,11 @@ namespace sc2
                         Console.WriteLine("Overlap detect " + u.ToStringEx());
                         g.DrawCircle(penOrange, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
                     }
-                }
-                else
-                {
-                    g.DrawCircle(pen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
-                }
+                //}
+                //else
+                //{
+                //    g.DrawCircle(pen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
+                //}
                 
             }
             int r = 15;
@@ -211,9 +211,11 @@ namespace sc2
 
         }
 
-        public bool isPlaceable(Unit u, ImageData placeMap, List<Unit> allUnits, float dx=1, float dy=1)
+        public bool isPlaceable(Unit u, ImageData placeMap, List<Unit> allUnits)
         {
             byte[][] pattern = u.GetBlock();
+            float dx =(float) (pattern[0].Length / 2.0);
+            float dy =(float) (pattern.Length / 2.0);
             if (placeMap.IsPlaceable((int)(u.Pos.X - dx), (int)(u.Pos.Y + dy), pattern))
             {
                 if (pattern.Length == pattern[0].Length)
