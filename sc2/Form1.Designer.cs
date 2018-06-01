@@ -38,6 +38,7 @@
             this.test2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.txtInput = new System.Windows.Forms.TextBox();
             this.test3ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveStateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -58,7 +59,8 @@
             // 
             this.starCraftToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.runToolStripMenuItem,
-            this.sendCommandToolStripMenuItem});
+            this.sendCommandToolStripMenuItem,
+            this.saveStateToolStripMenuItem});
             this.starCraftToolStripMenuItem.Name = "starCraftToolStripMenuItem";
             this.starCraftToolStripMenuItem.Size = new System.Drawing.Size(79, 24);
             this.starCraftToolStripMenuItem.Text = "StarCraft";
@@ -123,6 +125,13 @@
             this.test3ToolStripMenuItem.Text = "Test3";
             this.test3ToolStripMenuItem.Click += new System.EventHandler(this.test3ToolStripMenuItem_Click);
             // 
+            // saveStateToolStripMenuItem
+            // 
+            this.saveStateToolStripMenuItem.Name = "saveStateToolStripMenuItem";
+            this.saveStateToolStripMenuItem.Size = new System.Drawing.Size(186, 26);
+            this.saveStateToolStripMenuItem.Text = "Save State";
+            this.saveStateToolStripMenuItem.Click += new System.EventHandler(this.saveStateToolStripMenuItem_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -152,6 +161,7 @@
         private System.Windows.Forms.ToolStripMenuItem test2ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mnuOption;
         private System.Windows.Forms.ToolStripMenuItem test3ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveStateToolStripMenuItem;
     }
 }
 

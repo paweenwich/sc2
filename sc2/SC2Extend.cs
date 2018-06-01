@@ -1,4 +1,5 @@
-﻿using SC2APIProtocol;
+﻿using Google.Protobuf;
+using SC2APIProtocol;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -54,6 +55,20 @@ namespace sc2
             {
                 return self.ToString();
             }
+        }
+
+        public static void Save(this IMessage self, String filePath)
+        {
+            byte[] ret = new byte[self.CalculateSize()];
+            Google.Protobuf.CodedOutputStream os = new Google.Protobuf.CodedOutputStream(ret);
+            self.WriteTo(os);
+            File.WriteAllBytes(filePath, ret);
+        }
+        public static void Load(this IMessage self, String filePath)
+        {
+            byte[] ret = File.ReadAllBytes(filePath);
+            Google.Protobuf.CodedInputStream ins = new Google.Protobuf.CodedInputStream(ret);
+            self.MergeFrom(ins);
         }
 
     }

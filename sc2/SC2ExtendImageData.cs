@@ -77,19 +77,6 @@ namespace sc2
             return bv;
         }
 
-        public static void Save(this ImageData imgData, String filePath)
-        {
-            byte[] ret = new byte[imgData.CalculateSize()];
-            Google.Protobuf.CodedOutputStream os = new Google.Protobuf.CodedOutputStream(ret);
-            imgData.WriteTo(os);
-            File.WriteAllBytes(filePath, ret);
-        }
-        public static void Load(this ImageData imgData, String filePath)
-        {
-            byte[] ret = File.ReadAllBytes(filePath);
-            Google.Protobuf.CodedInputStream ins = new Google.Protobuf.CodedInputStream(ret);
-            imgData.MergeFrom(ins);
-        }
         //x,y = data,bitmap cordinate
         public static byte GetValue(this ImageData imgData, int x, int y)
         {
@@ -108,7 +95,34 @@ namespace sc2
                     int py = y + j;
                     if (px >= imgData.Size.X) return false;
                     if (py >= imgData.Size.Y) return false;
-                    if (imgData.GetValue(px, py) != value) return false;
+                    if (imgData.GetValue(px, py) != value)
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        //x,y = world cordinate
+        public static bool IsPlaceable(this ImageData imgData, int x, int y, byte[][] pattern, int value = 255)
+        {
+            y = imgData.Size.Y - y;
+            for (int i = 0; i < pattern[0].Length; i++)
+            {
+                for (int j = 0; j < pattern.Length; j++)
+                {
+                    int px = x + i;
+                    int py = y + j;
+                    if (px >= imgData.Size.X) return false;
+                    if (py >= imgData.Size.Y) return false;
+                    if (pattern[j][i] == 1)
+                    {
+                        byte v = imgData.GetValue(px, py);
+                        if (v != value)
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
             return true;
