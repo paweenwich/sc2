@@ -22,28 +22,33 @@ namespace sc2
 
         private void runToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Program.bot = new TerranBot();
-            chkAuto.Checked = Program.bot.GetBoolProperty((String)chkAuto.Tag);
-            chkLog.Checked = Program.bot.GetBoolProperty((String)chkLog.Tag);
-            chkDumpEnemy.Checked = Program.bot.GetBoolProperty((String)chkDumpEnemy.Tag);
-            chkDumpNetural.Checked = Program.bot.GetBoolProperty((String)chkDumpNetural.Tag);
-            chkDumpSelf.Checked = Program.bot.GetBoolProperty((String)chkDumpSelf.Tag);
+            ISC2Bot bot = (ISC2Bot) new TerranBot();
+            Program.bot = bot;
+            BuildMenu(bot);
             Thread newThread = new Thread(Program.RunSC2);
             newThread.Start();
         }
 
-        private void test1ToolStripMenuItem_Click(object sender, EventArgs e)
+        private void BuildMenu(ISC2Bot bot)
         {
-            ImageData data = new ImageData();
-            data.Load(@"TerrainHeight.bin");
-            //Console.WriteLine(data.ToString());
-            Bitmap bmp = data.ToDebugBitmap(50f,true);
-            Graphics g = Graphics.FromImage(bmp);
-            Random r = new Random();
-            g.Save();
-            g.Dispose();
-            bmp.Save(@"TerrainHeightDebug2.png", ImageFormat.Png);
+            mnuOption.DropDownItems.Clear();
+            foreach (String name in bot.GetBoolProperty())
+            {
+                ToolStripMenuItem item = new System.Windows.Forms.ToolStripMenuItem()
+                {
+                    Name = "chk" + name,
+                    Text = name,
+                    Tag = name,
+                    CheckOnClick = true,
+                    Checked = bot.GetBoolProperty(name),
+
+                };
+                item.CheckedChanged += menuOptionCheckedChanged;
+                mnuOption.DropDownItems.Add(item);
+            }
+
         }
+
 
         private void sendCommandToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -66,11 +71,33 @@ namespace sc2
             Program.bot.SendCommand(cmd);
         }
 
+
+
+        private void menuOptionCheckedChanged(object sender, EventArgs e)
+        {
+            ToolStripMenuItem menu = (ToolStripMenuItem)sender;
+            Console.WriteLine(String.Format("{0} {1}", menu.Tag, menu.Checked.ToString()));
+            Program.bot.SetBoolProperty((String)menu.Tag, menu.Checked);
+        }
+
+        private void test1ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ImageData data = new ImageData();
+            data.Load(@"TerrainHeight.bin");
+            //Console.WriteLine(data.ToString());
+            Bitmap bmp = data.ToDebugBitmap(50f, true);
+            Graphics g = Graphics.FromImage(bmp);
+            Random r = new Random();
+            g.Save();
+            g.Dispose();
+            bmp.Save(@"TerrainHeightDebug2.png", ImageFormat.Png);
+        }
+
         private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ImageData data = new ImageData();
             data.Load(@"TerrainHeight.bin");
-            foreach(TerranBuildPattern tbp in TerranData.rampPattens)
+            foreach (TerranBuildPattern tbp in TerranData.rampPattens)
             {
                 List<Point2D> ramp = data.FindPattern(tbp.pattern);
                 foreach (Point2D p in ramp)
@@ -79,13 +106,12 @@ namespace sc2
                 }
             }
         }
-
-        private void autoToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        private void test3ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ToolStripMenuItem menu = (ToolStripMenuItem)sender;
-            Console.WriteLine(String.Format("{0} {1}", menu.Tag, menu.Checked.ToString()));
-            Program.bot.SetBoolProperty((String)menu.Tag, menu.Checked);
+
         }
+
+
     }
 
 

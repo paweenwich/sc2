@@ -17,7 +17,7 @@ namespace sc2
         /// The main entry point for the application.
         /// </summary>
         //[STAThread]
-        public static ISCBot bot = new TerranBot();
+        public static ISC2Bot bot = new TerranBot();
         static void Main()
         {
             Application.EnableVisualStyles();

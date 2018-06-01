@@ -52,10 +52,7 @@ namespace sc2
                 if (target != null)
                 {
                     coolDownCommand.Add(new CoolDownCommandData() { key = "CallMule", finishStep = gameLoop + 50 });
-                    SC2APIProtocol.Action answer = NewAction();
-                    answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-                    answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.EFFECT_CALLDOWNMULE;
-                    answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                    SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.EFFECT_CALLDOWNMULE);
                     answer.ActionRaw.UnitCommand.TargetUnitTag = target.Tag;
                     return answer;
                 }
@@ -66,10 +63,7 @@ namespace sc2
         public SC2APIProtocol.Action MorphOrbital(Unit cc)
         {
             logDebug("MorphOrbital");
-            SC2APIProtocol.Action answer = NewAction();
-            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-            answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.MORPH_ORBITALCOMMAND;
-            answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+            SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.MORPH_ORBITALCOMMAND);
             return answer;
         }
 
@@ -77,10 +71,7 @@ namespace sc2
         {
             if (!coolDownCommand.IsDelayed("SetRallyPoint"))
             {
-                SC2APIProtocol.Action answer = NewAction();
-                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.RALLY_BUILDING;
-                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.RALLY_BUILDING);
                 //Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 10, 3);
                 Point2D pos = FindNearestRanmp(cc);
                 if (pos != null)
@@ -103,10 +94,7 @@ namespace sc2
             if (!coolDownCommand.IsDelayed("TrainSCV"))
             {
                 coolDownCommand.Add(new CoolDownCommandData() { key = "TrainSCV", finishStep = gameLoop + 250 });
-                SC2APIProtocol.Action answer = NewAction();
-                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.TRAIN_SCV;
-                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.TRAIN_SCV);
                 return answer;
             }
             return null;
@@ -132,10 +120,7 @@ namespace sc2
 
         public SC2APIProtocol.Action TrainFromBarrak(Unit cc, ABILITY_ID ability)
         {
-            SC2APIProtocol.Action answer = NewAction();
-            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-            answer.ActionRaw.UnitCommand.AbilityId = (int)ability;
-            answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+            SC2APIProtocol.Action answer = CreateAction(cc, ability);
             return answer;
         }
 
@@ -144,10 +129,7 @@ namespace sc2
             if (!coolDownCommand.IsDelayed("BuildSupply"))
             {
                 coolDownCommand.Add(new CoolDownCommandData() { key = "BuildSupply", finishStep = gameLoop + 10 });
-                SC2APIProtocol.Action answer = NewAction();
-                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_SUPPLYDEPOT;
-                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.BUILD_SUPPLYDEPOT);
                 Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 10, 2);
                 if (pos != null)
                 {
@@ -160,10 +142,7 @@ namespace sc2
         }
         public SC2APIProtocol.Action BuildBarrak(Unit cc)
         {
-            SC2APIProtocol.Action answer = NewAction();
-            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-            answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_BARRACKS;
-            answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+            SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.BUILD_BARRACKS);
             Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 15, 4);
             if (pos != null)
             {
@@ -179,10 +158,7 @@ namespace sc2
             Unit target = FindNearest(cc, UNIT_TYPEID.NEUTRAL_VESPENEGEYSER);
             if (target != null)
             {
-                SC2APIProtocol.Action answer = NewAction();
-                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_REFINERY;
-                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.BUILD_REFINERY);
                 answer.ActionRaw.UnitCommand.TargetUnitTag = target.Tag;
                 return answer;
             }
@@ -193,10 +169,7 @@ namespace sc2
             Unit target = FindNearest(cc, UNIT_TYPEID.NEUTRAL_MINERALFIELD);
             if (target != null)
             {
-                SC2APIProtocol.Action answer = NewAction();
-                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.HARVEST_GATHER_SCV;
-                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.HARVEST_GATHER_SCV);
                 answer.ActionRaw.UnitCommand.TargetUnitTag = target.Tag;
                 return answer;
             }
@@ -207,10 +180,7 @@ namespace sc2
             Unit target = FindNearest(cc, UNIT_TYPEID.TERRAN_REFINERY,true);
             if (target != null)
             {
-                SC2APIProtocol.Action answer = NewAction();
-                answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-                answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.HARVEST_GATHER_SCV;
-                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.HARVEST_GATHER_SCV);
                 answer.ActionRaw.UnitCommand.TargetUnitTag = target.Tag;
                 return answer;
             }
@@ -279,19 +249,17 @@ namespace sc2
                     {
                         if(HasResouce(100, 100, 0))
                         {
-                            if (!unitStates[u.Tag].researched.Contains(ABILITY_ID.RESEARCH_COMBATSHIELD))
+                            if(!IsUpgraded(UPGRADE_ID.SHIELDWALL))
                             {
                                 action = BuildOption(u, ABILITY_ID.RESEARCH_COMBATSHIELD);
-                                unitStates[u.Tag].researched.Add(ABILITY_ID.RESEARCH_COMBATSHIELD);
                                 break;
                             }
                         }
                         if (HasResouce(100, 100, 0))
                         {
-                            if (!unitStates[u.Tag].researched.Contains(ABILITY_ID.RESEARCH_STIMPACK))
+                            if (!IsUpgraded(UPGRADE_ID.STIMPACK))
                             {
                                 action = BuildOption(u, ABILITY_ID.RESEARCH_STIMPACK);
-                                unitStates[u.Tag].researched.Add(ABILITY_ID.RESEARCH_STIMPACK);
                                 break;
                             }
                         }
@@ -367,18 +335,6 @@ namespace sc2
                         }
                         break;
                     }
-            }
-            if(action != null)
-            {
-                //Observation obs = gameState.NewObservation.Observation;
-                //logDebug("Idle " + u.ToString());
-                logDebug(action.ToString());
-            }else
-            {
-                //if (u.UnitType != (int)UNIT_TYPEID.TERRAN_SUPPLYDEPOT)
-                //{
-                    //logDebug("Idle " + u.ToString());
-                //}
             }
             return action;
         }

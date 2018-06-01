@@ -11,13 +11,14 @@ using System.Drawing.Imaging;
 
 namespace sc2
 {
-    public abstract class ISCBot
+    public abstract class ISC2Bot
     {
         public abstract void Init(GameState gameState);
         public abstract SC2APIProtocol.Action Update(GameState gameState);
         public abstract void SendCommand(SC2Command cmd);
         public abstract void SetBoolProperty(String name,bool value);
         public abstract bool GetBoolProperty(String name);
+        public abstract List<String> GetBoolProperty();
     }
 
     public enum SC2CommandType 
@@ -98,7 +99,7 @@ namespace sc2
         public HashSet<ABILITY_ID> researched = new HashSet<ABILITY_ID>();
     }
 
-    public class SC2Bot : ISCBot
+    public class SC2Bot : ISC2Bot
     {
         protected int prevStep = -1;
         protected bool first = true;
@@ -112,6 +113,7 @@ namespace sc2
         public SC2ImageData placementData;
         public SC2ImageData pathingGridData;
         public RepeatedField<Unit> allUnits;
+        public RepeatedField<uint> upgradeIDs;
         public Dictionary<ulong, SC2UnitState> unitStates= new Dictionary<ulong, SC2UnitState>();
         public Dictionary<String, bool> boolProperty = new Dictionary<String, bool>();
         public Point2D[] startLocations;
@@ -156,6 +158,7 @@ namespace sc2
             SetBoolProperty("DumpNetural", false);
             SetBoolProperty("DumpSelf", true);
             SetBoolProperty("DumpEnemy", true);
+            SetBoolProperty("DumpWorker", false);
         }
 
         public override void Init(GameState gameState)
@@ -188,9 +191,10 @@ namespace sc2
             this.gameState = gameState;
             this.gameLoop = (int)gameState.NewObservation.Observation.GameLoop;
             this.allUnits = gameState.NewObservation.Observation.RawData.Units;
+            this.upgradeIDs = gameState.NewObservation.Observation.RawData.Player.UpgradeIds;
 
             coolDownCommand.Update(this.gameLoop);
-            logPrintf("{0} Update {1} {2}", this.GetType().Name, this.gameLoop, coolDownCommand.ToString());
+            logPrintf("\n{0} Update {1} {2} {3}", this.GetType().Name, this.gameLoop, coolDownCommand.ToString(), this.upgradeIDs.ToString());
             if (gameState.NewObservation.Observation.GameLoop == prevStep)
             {
                 logPrintf("Skip same step {0}", prevStep);
@@ -198,6 +202,7 @@ namespace sc2
             }
             prevStep = (int)gameState.NewObservation.Observation.GameLoop;
             logDebug(gameState.NewObservation.Observation.PlayerCommon.ToString());
+            
             if (gameState.NewObservation.ActionErrors.Count > 0)
             {
                 logDebug("ActionErrors " + gameState.NewObservation.ActionErrors.ToString());
@@ -244,6 +249,7 @@ namespace sc2
                         SC2APIProtocol.Action action = DoIdle(a);
                         if (action != null)
                         {
+                            logDebug("ACTION " + action.ToString());
                             return action;
                         }
                     }
@@ -254,7 +260,10 @@ namespace sc2
                     logDebug("Warning: process() return null");
                     ret = answer;
                 }
-                logDebug(ret.ToString());
+                if (ret.HasCommand())
+                {
+                    logDebug(ret.ToStringEx());
+                }
                 return ret;
             }else
             {
@@ -303,6 +312,10 @@ namespace sc2
         {
             foreach(Unit u in allUnits)
             {
+                if (u.IsWorker()&&(GetBoolProperty("DumpWorker") == false))
+                {
+                    continue;
+                }
                 if((u.Alliance == Alliance.Neutral) && (GetBoolProperty("DumpNetural")))
                 {
                     logDebug(u.ToStringEx());
@@ -419,6 +432,11 @@ namespace sc2
             }
             return null;
         }
+        public virtual bool IsUpgraded(UPGRADE_ID upgrade)
+        {
+            return (upgradeIDs.Contains((uint)upgrade));
+        }
+
         public virtual bool IsIdle(Unit u)
         {
             return (u.Orders.Count == 0) && (u.BuildProgress == 1);
@@ -494,5 +512,9 @@ namespace sc2
             throw new NotImplementedException("IsArmyUnit");
         }
 
+        public override List<string> GetBoolProperty()
+        {
+            return boolProperty.Keys.ToList();
+        }
     }
 }

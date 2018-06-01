@@ -40,23 +40,21 @@ namespace sc2
         }
 
 
-        public static bool OverlapWith(this Unit self,Unit other)
-        {
-            float d = self.Pos.Dist(other.Pos);
-            return self.OverlapWith(other.Pos.X, other.Pos.Y, other.Radius);
-        }
 
-        public static bool OverlapWith(this Unit self, float x,float y,float range)
+        public static bool HasCommand(this SC2APIProtocol.Action self)
         {
-            float d = self.Pos.Dist(x,y);
-            return (d < (self.Radius + range + 1));
+            return self.ActionRaw.UnitCommand != null;
         }
-
-        public static String ToStringEx(this Unit self)
+        public static String ToStringEx(this SC2APIProtocol.Action self)
         {
-            return Enum.GetName(typeof(UNIT_TYPEID),self.UnitType) + " " + self.ToString();
+            if (self.HasCommand() && (self.ActionRaw.UnitCommand.AbilityId!=0))
+            {
+                return Enum.GetName(typeof(ABILITY_ID), self.ActionRaw.UnitCommand.AbilityId) + " " + self.ToString();
+            }else
+            {
+                return self.ToString();
+            }
         }
-
 
     }
 

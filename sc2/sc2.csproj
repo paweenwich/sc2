@@ -75,6 +75,7 @@
     <Compile Include="SC2Enum.cs" />
     <Compile Include="SC2Extend.cs" />
     <Compile Include="SC2ExtendImageData.cs" />
+    <Compile Include="SC2ExtendUnit.cs" />
     <Compile Include="TerranBot.cs" />
     <Compile Include="TerranData.cs" />
     <EmbeddedResource Include="Form1.resx">
