@@ -14,6 +14,24 @@ namespace sc2
         public Dictionary<String, Point2D> data;
     }
 
+    public class BuildingData
+    {
+        public byte[][] pattern;
+        public float radious;
+        public UNIT_TYPEID unitType;
+    }
+
+    public static class SC2BuildingData
+    {
+        public static Dictionary<UNIT_TYPEID, BuildingData> Buildings = new Dictionary<UNIT_TYPEID, BuildingData>
+        {
+            { UNIT_TYPEID.TERRAN_SUPPLYDEPOT, new BuildingData {radious=1.0f, unitType= UNIT_TYPEID.TERRAN_SUPPLYDEPOT} },
+            { UNIT_TYPEID.TERRAN_BARRACKS, new BuildingData {radious=1.8125f, unitType= UNIT_TYPEID.TERRAN_BARRACKS, pattern=SC2ExtendUnit.block5x3} },
+        };
+    }
+
+
+
     public static class TerranData
     {
         public static HashSet<UNIT_TYPEID> TerranArmy = new HashSet<UNIT_TYPEID>

@@ -83,6 +83,7 @@ namespace sc2
             int addr = (y * imgData.Size.X) + x;
             return imgData.Data.ElementAt(addr);
         }
+
         //x,y = world cordinate
         public static bool IsPlaceable(this ImageData imgData, int x, int y,int size,int value = 255)
         {

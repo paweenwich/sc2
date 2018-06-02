@@ -123,50 +123,46 @@ namespace sc2
         {
             ResponseObservation obs = new ResponseObservation();
             obs.Load(@"NewObservation.bin");
+            List<Unit> allUnits = obs.Observation.RawData.Units.ToList();
             ImageData heightMap = new ImageData();
             heightMap.Load(@"TerrainHeight.bin");
             ImageData placeMap = new ImageData();
             placeMap.Load(@"PlacementGrid.bin");
+            placeMap = CreatePlaceableImageData(placeMap, allUnits);
             float scale = 50f;
             Bitmap bmp = placeMap.ToDebugBitmap(scale, true);
             Graphics g = Graphics.FromImage(bmp);
             Unit cc = null;
-            List<Unit> allUnits = obs.Observation.RawData.Units.ToList();
+            
             foreach (Unit u in allUnits)
             {
+                //Console.WriteLine("Checking " + ((UNIT_TYPEID)u.UnitType).ToString());
                 if(u.UnitType == (int)UNIT_TYPEID.TERRAN_COMMANDCENTER)
                 {
                     cc = u;
                 }
-                Pen pen = penWhite;
+/*                Pen pen = penWhite;
                 switch (u.Alliance)
                 {
                     case Alliance.Enemy: pen = penRed; break;
                     case Alliance.Neutral: pen = penGreen; break;
                     case Alliance.Self: pen = penBlue; break;
                 }
-                //if(u.UnitType == (int)UNIT_TYPEID.TERRAN_SUPPLYDEPOT)
-                //{
+                if(isPlaceable(u, placeMap, allUnits)||(u.idealRedius()< 1)||(u.Alliance == Alliance.Neutral))
+                {
 
-                    if(isPlaceable(u, placeMap, allUnits)||(u.IntSize()<1)||(u.Alliance == Alliance.Neutral))
-                    {
-
-                        g.DrawCircle(pen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Overlap detect " + u.ToStringEx());
-                        g.DrawCircle(penOrange, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
-                    }
-                //}
-                //else
-                //{
-                //    g.DrawCircle(pen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
-                //}
-                
+                    g.DrawCircle(pen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
+                }
+                else
+                {
+                    Console.WriteLine("Overlap detect " + u.ToStringEx());
+                    g.DrawCircle(penOrange, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
+                }
+*/                
             }
             int r = 15;
-            byte[][] pattern = SC2ExtendUnit.block3x5;
+            Unit testUnit = SC2Bot.FakeBuildingUnit(UNIT_TYPEID.TERRAN_BARRACKS);
+            byte[][] pattern = testUnit.GetBlock();
             bool flgSameLevel = true;
             int ccHeight = heightMap.GetValue((int)(cc.Pos.X), heightMap.Size.Y - (int)(cc.Pos.Y));
             for (int y = (int)(cc.Pos.Y - r); y < (int)(cc.Pos.Y + r); y++)
@@ -188,20 +184,13 @@ namespace sc2
                                 continue;
                             }
                         }
-                        Unit tmpU = new Unit();
-                        tmpU.Pos = new SC2APIProtocol.Point();
-                        tmpU.Radius = (float)(Math.Max(pattern[0].Length, pattern.Length) / 2.0);
-                        tmpU.Pos.X = x + tmpU.Radius;
-                        tmpU.Pos.Y = y - tmpU.Radius;
-                        tmpU.Radius = (float)(Math.Max(pattern[0].Length, pattern.Length) / 2.0);
-                        if (tmpU.OverlapWith(allUnits))
+                        testUnit.SetPos(x + testUnit.idealRedius(), y - testUnit.idealRedius());
+                        if(!isPlaceable(testUnit, placeMap, allUnits))
                         {
                             continue;
                         }
-                        //Console.WriteLine(String.Format("{0} {1}",x,y));
                         int ny = y;
                         g.DrawRectangle(penViolet, new Rectangle((int) (x*scale),bmp.Height - (int) (ny*scale), (int)(pattern[0].Length*scale),(int)(pattern.Length*scale)));
-                        g.DrawCircle(penViolet, (int)(tmpU.Pos.X * scale), bmp.Height - (int)(tmpU.Pos.Y * scale), tmpU.Radius*scale);
                     }
                 }
             }
@@ -211,12 +200,35 @@ namespace sc2
 
         }
 
-        public bool isPlaceable(Unit u, ImageData placeMap, List<Unit> allUnits)
+        public ImageData CreatePlaceableImageData(ImageData placeable, List<Unit> allUnits)
         {
-            byte[][] pattern = u.GetBlock();
+            ImageData ret = placeable.Clone();
+            byte[] data = ret.Data.ToArray();
+            for(float x = 0.5f; x < ret.Size.X; x+=1)
+            {
+                for (float y = 0.5f; y < ret.Size.Y; y+=1)
+                {
+                    if(IsPointTaken(x, y, allUnits))
+                    {
+                        int addr = (int)((Math.Floor(ret.Size.Y - y) * ret.Size.X) + Math.Floor(x));
+                        data[addr] = 127;
+                    }
+                }
+            }
+            ret.Data = Google.Protobuf.ByteString.CopyFrom(data);
+            return ret;
+        }
+
+        public bool isPlaceable(Unit u, ImageData placeMap, List<Unit> allUnits,byte[][] pattern = null)
+        {
+            if (pattern == null)
+            {
+                pattern = u.GetBlock();
+            }
             float dx =(float) (pattern[0].Length / 2.0);
             float dy =(float) (pattern.Length / 2.0);
-            if (placeMap.IsPlaceable((int)(u.Pos.X - dx), (int)(u.Pos.Y + dy), pattern))
+            float d = Math.Min(dx, dy);
+            if (placeMap.IsPlaceable((int)(u.Pos.X - d), (int)(u.Pos.Y + d), pattern))
             {
                 if (pattern.Length == pattern[0].Length)
                 {
@@ -227,9 +239,22 @@ namespace sc2
                 }
                 else
                 {
-
+                    //Console.WriteLine(String.Format("Block {0}x{1} found", pattern[0].Length, pattern.Length));
                 }
                 return true;
+            }
+            return false;
+        }
+
+        private bool IsPointTaken(float x,float y,List<Unit> allUnits)
+        {
+            foreach(Unit u in allUnits)
+            {
+                if (u.IsWorker()) continue;
+                if (u.OverlapWith(x, y, 0.01f))
+                {
+                    return true;
+                }
             }
             return false;
         }

@@ -18,7 +18,7 @@ namespace sc2
             new byte[] {1,1},
             new byte[] {1,1},
         };
-        public static byte[][] block3x5 = new byte[][]
+        public static byte[][] block5x3 = new byte[][]
         {
             new byte[] {1,1,1,0,0},
             new byte[] {1,1,1,1,1},
@@ -46,20 +46,20 @@ namespace sc2
             new byte[] {1,1,1,1,1},
         };
 
-        public static int IntSize(this Unit self)
+        public static float idealRedius(this Unit self)
         {
-            return (int)(float)(Math.Floor(self.Radius * 2) / 2.0);
+            return (float)(Math.Floor(self.Radius * 2.0f) / 2.0f);
         }
         public static bool OverlapWith(this Unit self, Unit other)
         {
             float d = self.Pos.Dist(other.Pos);
-            return self.OverlapWith(other.Pos.X, other.Pos.Y, other.IntSize());
+            return self.OverlapWith(other.Pos.X, other.Pos.Y, other.idealRedius());
         }
 
         public static bool OverlapWith(this Unit self, float x, float y, float range)
         {
             float d = self.Pos.Dist(x, y);
-            return (d < (self.IntSize() + range));
+            return (d < (self.idealRedius() + range));
         }
 
         public static bool OverlapWith(this Unit self, List<Unit> allUnits)
@@ -93,9 +93,24 @@ namespace sc2
             }
         }
 
+        public static void SetPos(this Unit u,float x,float y)
+        {
+            u.Pos.X = x;
+            u.Pos.Y = y;
+        }
+
         public static byte[][] GetBlock(this Unit u)
         {
-            switch(u.IntSize()*2)
+
+            if (SC2BuildingData.Buildings.ContainsKey((UNIT_TYPEID)u.UnitType))
+            {
+                if (SC2BuildingData.Buildings[(UNIT_TYPEID)u.UnitType].pattern != null)
+                {
+                    return SC2BuildingData.Buildings[(UNIT_TYPEID)u.UnitType].pattern;
+                }
+            }
+            int size = (int)(u.idealRedius() * 2);
+            switch (size)
             {
                 case 2: return block2x2;
                 case 3: return block3x3;
@@ -104,6 +119,8 @@ namespace sc2
             }
             return block1x1;
         }
+
+
 
     }
 }

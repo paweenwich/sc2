@@ -112,7 +112,7 @@ namespace sc2
         public SC2ImageData terrainHeightData;
         public SC2ImageData placementData;
         public SC2ImageData pathingGridData;
-        public RepeatedField<Unit> allUnits;
+        public List<Unit> allUnits;
         public RepeatedField<uint> upgradeIDs;
         public Dictionary<ulong, SC2UnitState> unitStates= new Dictionary<ulong, SC2UnitState>();
         public Dictionary<String, bool> boolProperty = new Dictionary<String, bool>();
@@ -190,7 +190,7 @@ namespace sc2
             SC2APIProtocol.Action answer = NewAction();
             this.gameState = gameState;
             this.gameLoop = (int)gameState.NewObservation.Observation.GameLoop;
-            this.allUnits = gameState.NewObservation.Observation.RawData.Units;
+            this.allUnits = gameState.NewObservation.Observation.RawData.Units.ToList();
             this.upgradeIDs = gameState.NewObservation.Observation.RawData.Player.UpgradeIds;
 
             coolDownCommand.Update(this.gameLoop);
@@ -346,7 +346,7 @@ namespace sc2
             return true;
         }
 
-        public Point2D FindPlaceable(int x,int y,int rad,int size)
+        public Point2D FindPlaceable_(int x,int y,int rad,int size)
         {
             for(int i = 0; i < 500; i++)
             {
@@ -365,6 +365,91 @@ namespace sc2
             }
             return null;
         }
+
+        public static Unit FakeBuildingUnit(UNIT_TYPEID unitType)
+        {
+            if (SC2BuildingData.Buildings.ContainsKey(unitType))
+            {
+                Unit u = new Unit();
+                u.Pos = new SC2APIProtocol.Point();
+                u.Radius = SC2BuildingData.Buildings[unitType].radious;
+                u.UnitType = (uint)unitType;
+                return u;
+            }
+            return null;
+        }
+
+        public Point2D FindPlaceable(int X, int Y, int rad, UNIT_TYPEID unitType, bool flgSameLevel = true)
+        {
+            int r = rad;
+            Unit testUnit = FakeBuildingUnit(unitType);
+            byte[][] pattern = testUnit.GetBlock();
+            int ccHeight = terrainHeightData.imgData.GetValue((int)(X), terrainHeightData.imgData.Size.Y - (int)(Y));
+            List<Point2D> lstPoint = new List<Point2D>();
+            for (int y = (int)(Y - r); y < (int)(Y + r); y++)
+            {
+                if ((y < 0) || (y > placementData.imgData.Size.Y)) continue;
+                for (int x = (int)(Y - r); x < (int)(X + r); x++)
+                {
+                    if ((x < 0) || (x > placementData.imgData.Size.X)) continue;
+                    if (placementData.imgData.IsPlaceable(x, y, pattern))
+                    {
+                        if (flgSameLevel)
+                        {
+                            if (!terrainHeightData.imgData.IsPlaceable(x, y, pattern, ccHeight))
+                            {
+                                continue;
+                            }
+                        }
+                        float tx = x + testUnit.idealRedius();
+                        float ty = y - testUnit.idealRedius();
+                        testUnit.SetPos(x + testUnit.idealRedius(), y - testUnit.idealRedius());
+                        if (!isPlaceable(testUnit, placementData.imgData, allUnits))
+                        {
+                            continue;
+                        }
+                        Point2D ret = new Point2D();
+                        ret.X = tx;
+                        ret.Y = ty;
+                        lstPoint.Add(ret);
+                    }
+                }
+            }
+            logPrintf("FindPlaceableEx found {0}", lstPoint.Count);
+            if (lstPoint.Count > 0)
+            {
+                return lstPoint[rand.Next(lstPoint.Count)];
+            }
+            return null;
+        }
+
+        public bool isPlaceable(Unit u, ImageData placeMap, List<Unit> allUnits, byte[][] pattern = null)
+        {
+            if (pattern == null)
+            {
+                pattern = u.GetBlock();
+            }
+            float dx = (float)(pattern[0].Length / 2.0);
+            float dy = (float)(pattern.Length / 2.0);
+            float d = Math.Min(dx, dy);
+            if (placeMap.IsPlaceable((int)(u.Pos.X - d), (int)(u.Pos.Y + d), pattern))
+            {
+                if (pattern.Length == pattern[0].Length)
+                {
+                    if (u.OverlapWith(allUnits))
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    //Console.WriteLine(String.Format("Block {0}x{1} found", pattern[0].Length, pattern.Length));
+                }
+                return true;
+            }
+            return false;
+        }
+
 
         public List<Unit> GetMyArmyUnits()
         {

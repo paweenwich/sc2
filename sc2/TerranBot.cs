@@ -130,7 +130,7 @@ namespace sc2
             {
                 coolDownCommand.Add(new CoolDownCommandData() { key = "BuildSupply", finishStep = gameLoop + 10 });
                 SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.BUILD_SUPPLYDEPOT);
-                Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 10, 2);
+                Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 10,UNIT_TYPEID.TERRAN_SUPPLYDEPOT,true);
                 if (pos != null)
                 {
                     logDebug("BuildSupply at " + pos.ToString());
@@ -143,7 +143,7 @@ namespace sc2
         public SC2APIProtocol.Action BuildBarrak(Unit cc)
         {
             SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.BUILD_BARRACKS);
-            Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 15, 4);
+            Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 15,UNIT_TYPEID.TERRAN_BARRACKS, true);
             if (pos != null)
             {
                 logDebug("BuildBarrak at " + pos.ToString());
