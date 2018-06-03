@@ -42,6 +42,27 @@ namespace sc2
         }
     }
 
+    public class ScoreData : IComparable<ScoreData>
+    {
+        public float score;
+        public object data;
+
+        int IComparable<ScoreData>.CompareTo(ScoreData other)
+        {
+            return score.CompareTo(other.score);
+        }
+    }
+
+    public class ScoreDatas : List<ScoreData>
+    {
+    }
+
+    public class MyArmy
+    {
+        public List<Unit> all = new List<Unit>();
+        public List<Unit> engaging = new List<Unit>();
+    }
+
 
     public class CoolDownCommandData
     {
@@ -346,26 +367,6 @@ namespace sc2
             return true;
         }
 
-        public Point2D FindPlaceable_(int x,int y,int rad,int size)
-        {
-            for(int i = 0; i < 500; i++)
-            {
-                int px = rand.Next(x - rad, x + rad);
-                int py = rand.Next(y - rad, y + rad);
-                if (placementData.imgData.IsPlaceable(px, py, size))
-                {
-                    Point2D ret = new Point2D();
-                    ret.X = px + (float) (size/2.0);
-                    ret.Y = py + (float) (size/2.0);
-                    if (IsNotOverlapWithUnit(ret, (float)(size / 2.0)))
-                    {
-                        return ret;
-                    }
-                }
-            }
-            return null;
-        }
-
         public static Unit FakeBuildingUnit(UNIT_TYPEID unitType)
         {
             if (SC2BuildingData.Buildings.ContainsKey(unitType))
@@ -381,6 +382,51 @@ namespace sc2
 
         public Point2D FindPlaceable(int X, int Y, int rad, UNIT_TYPEID unitType, bool flgSameLevel = true)
         {
+            List<Point2D> lstPoint = FindPlaceables(X, Y, rad, unitType, flgSameLevel);
+            logPrintf("FindPlaceable found {0}", lstPoint.Count);
+            if (lstPoint.Count > 0)
+            {
+                return lstPoint[rand.Next(lstPoint.Count)];
+            }
+            return null;
+        }
+        public static bool IsPointTaken(float x, float y, List<Unit> allUnits)
+        {
+            foreach (Unit u in allUnits)
+            {
+                if (u.IsWorker()) continue;
+                if (u.OverlapWith(x, y, 0.01f))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static ImageData CreatePlaceableImageData(ImageData placeable, List<Unit> allUnits)
+        {
+            ImageData ret = placeable.Clone();
+            byte[] data = ret.Data.ToArray();
+            for (float x = 0.5f; x < ret.Size.X; x += 1)
+            {
+                for (float y = 0.5f; y < ret.Size.Y; y += 1)
+                {
+                    if (IsPointTaken(x, y, allUnits))
+                    {
+                        int addr = (int)((Math.Floor(ret.Size.Y - y) * ret.Size.X) + Math.Floor(x));
+                        data[addr] = 127;
+                    }
+                }
+            }
+            ret.Data = Google.Protobuf.ByteString.CopyFrom(data);
+            return ret;
+        }
+
+        public List<Point2D> FindPlaceables(int X, int Y, int rad, UNIT_TYPEID unitType, bool flgSameLevel = true)
+        {
+            ImageData placeMap = new ImageData();
+            placeMap = CreatePlaceableImageData(placementData.imgData, allUnits);
+
             int r = rad;
             Unit testUnit = FakeBuildingUnit(unitType);
             byte[][] pattern = testUnit.GetBlock();
@@ -388,11 +434,11 @@ namespace sc2
             List<Point2D> lstPoint = new List<Point2D>();
             for (int y = (int)(Y - r); y < (int)(Y + r); y++)
             {
-                if ((y < 0) || (y > placementData.imgData.Size.Y)) continue;
-                for (int x = (int)(Y - r); x < (int)(X + r); x++)
+                if ((y < 0) || (y > placeMap.Size.Y)) continue;
+                for (int x = (int)(X - r); x < (int)(X + r); x++)
                 {
-                    if ((x < 0) || (x > placementData.imgData.Size.X)) continue;
-                    if (placementData.imgData.IsPlaceable(x, y, pattern))
+                    if ((x < 0) || (x > placeMap.Size.X)) continue;
+                    if (placeMap.IsPlaceable(x, y, pattern))
                     {
                         if (flgSameLevel)
                         {
@@ -404,7 +450,7 @@ namespace sc2
                         float tx = x + testUnit.idealRedius();
                         float ty = y - testUnit.idealRedius();
                         testUnit.SetPos(x + testUnit.idealRedius(), y - testUnit.idealRedius());
-                        if (!isPlaceable(testUnit, placementData.imgData, allUnits))
+                        if (!isPlaceable(testUnit, placeMap, allUnits))
                         {
                             continue;
                         }
@@ -415,13 +461,9 @@ namespace sc2
                     }
                 }
             }
-            logPrintf("FindPlaceableEx found {0}", lstPoint.Count);
-            if (lstPoint.Count > 0)
-            {
-                return lstPoint[rand.Next(lstPoint.Count)];
-            }
-            return null;
+            return lstPoint;
         }
+
 
         public bool isPlaceable(Unit u, ImageData placeMap, List<Unit> allUnits, byte[][] pattern = null)
         {
@@ -451,18 +493,21 @@ namespace sc2
         }
 
 
-        public List<Unit> GetMyArmyUnits()
+        public MyArmy GetMyArmyUnits()
         {
-            List<Unit> ret = new List<Unit>();
+            MyArmy ret = new MyArmy();
             foreach (Unit u in allUnits)
             {
                 if (IsArmyUnit(u))
                 {
-                    ret.Add(u);
+                    ret.all.Add(u);
+                    if (u.EngagedTargetTag != 0)
+                    {
+                        ret.engaging.Add(u);
+                    }
                 }
             }
             return ret;
-
         }
 
         public List<Unit> GetMyUnits(UNIT_TYPEID unitType = UNIT_TYPEID.INVALID,bool countBuilding = false)
@@ -531,6 +576,18 @@ namespace sc2
             foreach(UnitOrder o in u.Orders)
             {
                 if(o.AbilityId == (int)ability)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public bool HasBuilding(UNIT_TYPEID unit)
+        {
+            foreach(Unit u in GetMyUnits())
+            {
+                if(u.UnitType == (int)unit)
                 {
                     return true;
                 }

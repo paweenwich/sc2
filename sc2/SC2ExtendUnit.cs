@@ -120,7 +120,30 @@ namespace sc2
             return block1x1;
         }
 
+        public static bool HasBuff(this Unit u, BUFF_ID buffID)
+        {
+            if (u.BuffIds != null)
+            {
+                return (u.BuffIds.Contains((uint)buffID));
+            }
+            return false;
+        }
 
+        public static bool CanStimpack(this Unit u)
+        {
+            if ((u.Health > 10))
+            {
+                if ((u.UnitType == (int)UNIT_TYPEID.TERRAN_MARINE) && (!u.HasBuff(BUFF_ID.STIMPACK)))
+                {
+                    return true;
+                }
+                if ((u.UnitType == (int)UNIT_TYPEID.TERRAN_MARAUDER) && (!u.HasBuff(BUFF_ID.STIMPACKMARAUDER)))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
     }
 }

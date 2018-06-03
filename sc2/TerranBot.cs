@@ -13,6 +13,18 @@ namespace sc2
     {
         public Dictionary<Point2D, TerranBuildPattern> rampData = new Dictionary<Point2D, TerranBuildPattern>();
 
+        public SC2APIProtocol.Action Stimpack(List<Unit> units)
+        {
+            SC2APIProtocol.Action answer = NewAction();
+            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+            answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.EFFECT_STIM;
+            foreach (Unit cc in units)
+            {
+                answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+            }
+            return answer;
+        }
+
         public SC2APIProtocol.Action BuildOption(Unit u, ABILITY_ID ability)
         {
             if (!coolDownCommand.IsDelayed("BuildOption"))
@@ -22,6 +34,7 @@ namespace sc2
             }
             return null;
         }
+
         public SC2APIProtocol.Action AttackAttack(List<Unit> idleArmy)
         {
             if (!coolDownCommand.IsDelayed("AttackAttack"))
@@ -130,12 +143,25 @@ namespace sc2
             {
                 coolDownCommand.Add(new CoolDownCommandData() { key = "BuildSupply", finishStep = gameLoop + 10 });
                 SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.BUILD_SUPPLYDEPOT);
-                Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 10,UNIT_TYPEID.TERRAN_SUPPLYDEPOT,true);
-                if (pos != null)
+                List<Point2D> poses = FindPlaceables((int)cc.Pos.X, (int)cc.Pos.Y, 10, UNIT_TYPEID.TERRAN_SUPPLYDEPOT, true);
+                if (poses.Count > 0)
                 {
-                    logDebug("BuildSupply at " + pos.ToString());
-                    answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
-                    return answer;
+                    ScoreDatas scores = new ScoreDatas();
+                    foreach (Point2D p in poses)
+                    {
+                        float dist = cc.Pos.Dist(p.X, p.Y);
+                        scores.Add(new ScoreData { data = p, score = dist });
+                    }
+                    scores.Sort();
+                    scores.Reverse();
+                    //Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 10,UNIT_TYPEID.TERRAN_SUPPLYDEPOT,true);
+                    Point2D pos = (Point2D)scores[0].data;
+                    if (pos != null)
+                    {
+                        logDebug("BuildSupply at " + pos.ToString());
+                        answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
+                        return answer;
+                    }
                 }
             }
             return null;
@@ -313,14 +339,25 @@ namespace sc2
                         {
                             if (HasResouce(50, 50, 1) && (u.AddOnTag == 0))
                             {
-                                if ((rand.Next() % 2) == 1)
+                                if (!HasBuilding(UNIT_TYPEID.TERRAN_BARRACKSTECHLAB))
                                 {
                                     action = BuildOption(u, ABILITY_ID.BUILD_TECHLAB_BARRACKS);
-                                    //action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
+                                }
+                                else if (!HasBuilding(UNIT_TYPEID.TERRAN_BARRACKSREACTOR))
+                                {
+                                    action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
                                 }
                                 else
                                 {
-                                    action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
+                                    if ((rand.Next() % 2) == 1)
+                                    {
+                                        action = BuildOption(u, ABILITY_ID.BUILD_TECHLAB_BARRACKS);
+                                        //action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
+                                    }
+                                    else
+                                    {
+                                        action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
+                                    }
                                 }
                             }
                             if ((action == null) && HasResouce(50, 0, 1))
@@ -398,7 +435,7 @@ namespace sc2
             List<Unit> Supplys = GetMyUnits(UNIT_TYPEID.TERRAN_SUPPLYDEPOT,true);
             List<Unit> Refineries = GetMyUnits(UNIT_TYPEID.TERRAN_REFINERY);
             List<Unit> Barracks = GetMyUnits(UNIT_TYPEID.TERRAN_BARRACKS);
-            List<Unit> ArmyUnits =  GetMyArmyUnits();
+            MyArmy ArmyUnits =  GetMyArmyUnits();
             int supplyBuildingProgress = CountBuildingOnProgress(SCVs, ABILITY_ID.BUILD_SUPPLYDEPOT);
             int barrakIdleCount = 0;
             foreach(Unit u in Barracks){
@@ -407,10 +444,53 @@ namespace sc2
                     barrakIdleCount++;
                 }
             }
-            logPrintf("CC {0} OCC {6} SCV {1} SUPPLY {2} + {5} REFINERY {3} BARRAKS {4} {8} ARMY {7}", 
+            logPrintf("CC {0} OCC {6} SCV {1} SUPPLY {2} + {5} REFINERY {3} BARRAKS {4} {8} ARMY {7} {9}", 
                 CCs.Count, SCVs.Count, Supplys.Count, Refineries.Count, Barracks.Count,
-                supplyBuildingProgress, OCCs.Count, ArmyUnits.Count, barrakIdleCount
+                supplyBuildingProgress, OCCs.Count, ArmyUnits.all.Count, barrakIdleCount, ArmyUnits.engaging.Count
             );
+
+            if(ArmyUnits.engaging.Count > 0)
+            {
+                List<Unit> stimUnits = new List<Unit>();
+                foreach (Unit u in ArmyUnits.all)
+                {
+                    if (IsUpgraded(UPGRADE_ID.STIMPACK) && u.CanStimpack())
+                    {
+                        if (u.Health < u.HealthMax)
+                        {
+                            stimUnits.Add(u);
+                        }
+                    }
+                }
+                if (stimUnits.Count > 0)
+                {
+                    logPrintf("STIM {0}", stimUnits.Count);
+                    answer = Stimpack(stimUnits);
+                    return answer;
+                }
+            }
+
+            if (ArmyUnits.all.Count > 5)
+            {
+                List<Unit> idleArmy = new List<Unit>();
+                foreach (Unit u in ArmyUnits.all)
+                {
+                    if (!HasOrder(u, ABILITY_ID.ATTACK_ATTACK))
+                    {
+                        idleArmy.Add(u);
+                    }
+                }
+                if (idleArmy.Count > 5)
+                {
+                    SC2APIProtocol.Action ret = AttackAttack(idleArmy);
+                    if (ret != null)
+                    {
+                        return ret;
+                    }
+                }
+            }
+
+
             Unit scv = null;
             foreach (Unit u in SCVs)
             {
@@ -476,25 +556,6 @@ namespace sc2
                     }
                 }
 
-                if (ArmyUnits.Count > 5)
-                {
-                    List<Unit> idleArmy = new List<Unit>();
-                    foreach(Unit u in ArmyUnits)
-                    {
-                        if (!HasOrder(u, ABILITY_ID.ATTACK_ATTACK))
-                        {
-                            idleArmy.Add(u);
-                        }
-                    }
-                    if(idleArmy.Count > 5)
-                    {
-                        SC2APIProtocol.Action ret = AttackAttack(idleArmy);
-                        if (ret != null)
-                        {
-                            return ret;
-                        }
-                    }
-                }
             }
             return answer;
         }

@@ -1,4 +1,5 @@
 ﻿using SC2APIProtocol;
+using Starcraft2;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -82,8 +83,28 @@ namespace sc2
 
         private void test1ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-        }
+            TerranBot tb = (TerranBot)Program.bot;
+            Console.WriteLine(tb.allUnits.Count.ToString());
+            List<Point2D> points = tb.FindPlaceables((int)28.5, (int)60.5, 15, UNIT_TYPEID.TERRAN_BARRACKS, true);
+            ImageData heightMap = new ImageData();
+            heightMap.Load(@"TerrainHeight.bin");
+            ImageData placeMap = new ImageData();
+            placeMap.Load(@"PlacementGrid.bin");
+            float scale = 50f;
+            Bitmap bmp = placeMap.ToDebugBitmap(scale, true);
+            Graphics g = Graphics.FromImage(bmp);
+            foreach (Point2D p in points)
+            {
+                //Console.WriteLine(p.ToString());
+                //g.DrawRectangle(penViolet, new Rectangle((int)(p.X * scale), bmp.Height - (int)(p.Y * scale), (int)(5 * scale), (int)(3 * scale)));
+                g.DrawCircle(penViolet, p.X * scale, bmp.Height - (p.Y * scale), 3 * scale);
+            }
 
+            g.Save();
+            g.Dispose();
+            bmp.Save(@"TerrainHeightWithUnitDebug.png", ImageFormat.Png);
+
+        }
         private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ImageData data = new ImageData();
@@ -123,12 +144,13 @@ namespace sc2
         {
             ResponseObservation obs = new ResponseObservation();
             obs.Load(@"NewObservation.bin");
+
             List<Unit> allUnits = obs.Observation.RawData.Units.ToList();
             ImageData heightMap = new ImageData();
             heightMap.Load(@"TerrainHeight.bin");
             ImageData placeMap = new ImageData();
             placeMap.Load(@"PlacementGrid.bin");
-            placeMap = CreatePlaceableImageData(placeMap, allUnits);
+            placeMap = SC2Bot.CreatePlaceableImageData(placeMap, allUnits);
             float scale = 50f;
             Bitmap bmp = placeMap.ToDebugBitmap(scale, true);
             Graphics g = Graphics.FromImage(bmp);
@@ -160,7 +182,7 @@ namespace sc2
                 }
 */                
             }
-            int r = 15;
+            int r = 10;
             Unit testUnit = SC2Bot.FakeBuildingUnit(UNIT_TYPEID.TERRAN_BARRACKS);
             byte[][] pattern = testUnit.GetBlock();
             bool flgSameLevel = true;
@@ -199,26 +221,6 @@ namespace sc2
             bmp.Save(@"TerrainHeightWithUnit.png", ImageFormat.Png);
 
         }
-
-        public ImageData CreatePlaceableImageData(ImageData placeable, List<Unit> allUnits)
-        {
-            ImageData ret = placeable.Clone();
-            byte[] data = ret.Data.ToArray();
-            for(float x = 0.5f; x < ret.Size.X; x+=1)
-            {
-                for (float y = 0.5f; y < ret.Size.Y; y+=1)
-                {
-                    if(IsPointTaken(x, y, allUnits))
-                    {
-                        int addr = (int)((Math.Floor(ret.Size.Y - y) * ret.Size.X) + Math.Floor(x));
-                        data[addr] = 127;
-                    }
-                }
-            }
-            ret.Data = Google.Protobuf.ByteString.CopyFrom(data);
-            return ret;
-        }
-
         public bool isPlaceable(Unit u, ImageData placeMap, List<Unit> allUnits,byte[][] pattern = null)
         {
             if (pattern == null)
@@ -245,20 +247,6 @@ namespace sc2
             }
             return false;
         }
-
-        private bool IsPointTaken(float x,float y,List<Unit> allUnits)
-        {
-            foreach(Unit u in allUnits)
-            {
-                if (u.IsWorker()) continue;
-                if (u.OverlapWith(x, y, 0.01f))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         private void saveStateToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SC2Bot sc2bot = (SC2Bot) Program.bot;
