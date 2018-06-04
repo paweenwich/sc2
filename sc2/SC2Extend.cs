@@ -40,6 +40,17 @@ namespace sc2
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
 
+        public static float Dist(this Point2D p1, Point2D p2)
+        {
+            return p1.Dist(p2.X, p2.Y);
+        }
+
+        public static float Dist(this Point2D p1, float x, float y)
+        {
+            float dx = p1.X - x;
+            float dy = p1.Y - y;
+            return (float)Math.Sqrt(dx * dx + dy * dy);
+        }
 
 
         public static bool HasCommand(this SC2APIProtocol.Action self)

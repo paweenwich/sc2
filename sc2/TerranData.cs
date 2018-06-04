@@ -26,41 +26,48 @@ namespace sc2
         public static Dictionary<UNIT_TYPEID, BuildingData> Buildings = new Dictionary<UNIT_TYPEID, BuildingData>
         {
             { UNIT_TYPEID.TERRAN_SUPPLYDEPOT, new BuildingData {radious=1.0f, unitType= UNIT_TYPEID.TERRAN_SUPPLYDEPOT} },
-            { UNIT_TYPEID.TERRAN_BARRACKS, new BuildingData {radious=1.8125f, unitType= UNIT_TYPEID.TERRAN_BARRACKS, pattern=SC2ExtendUnit.block5x3} },
+            { UNIT_TYPEID.TERRAN_BARRACKS, new BuildingData {radious=1.8125f, unitType= UNIT_TYPEID.TERRAN_BARRACKS, pattern=SC2Data.block5x3} },
+            { UNIT_TYPEID.TERRAN_FACTORY, new BuildingData {radious=1.8125f, unitType= UNIT_TYPEID.TERRAN_FACTORY, pattern=SC2Data.block5x3} },
+            { UNIT_TYPEID.TERRAN_ENGINEERINGBAY, new BuildingData {radious=1.8125f, unitType= UNIT_TYPEID.TERRAN_FACTORY, pattern=SC2Data.block3x3} },
         };
     }
 
+    public class UnitProperty
+    {
+        public float range = 5;
+    }
 
 
     public static class TerranData
     {
-        public static HashSet<UNIT_TYPEID> TerranArmy = new HashSet<UNIT_TYPEID>
+        public static Dictionary<UNIT_TYPEID, UnitProperty> TerranArmy = new Dictionary < UNIT_TYPEID, UnitProperty>
+        //public static HashSet<UNIT_TYPEID> TerranArmy = new HashSet<UNIT_TYPEID>
         {
-            UNIT_TYPEID.TERRAN_BATTLECRUISER,
-            UNIT_TYPEID.TERRAN_CYCLONE,
-            UNIT_TYPEID.TERRAN_GHOST,
-            UNIT_TYPEID.TERRAN_HELLION,
-            UNIT_TYPEID.TERRAN_HELLIONTANK,
-            UNIT_TYPEID.TERRAN_LIBERATOR,
-            UNIT_TYPEID.TERRAN_LIBERATORAG,
-            UNIT_TYPEID.TERRAN_MARAUDER,
-            UNIT_TYPEID.TERRAN_MARINE,
-            UNIT_TYPEID.TERRAN_MEDIVAC,
-            UNIT_TYPEID.TERRAN_RAVEN,
-            UNIT_TYPEID.TERRAN_REAPER,
-            UNIT_TYPEID.TERRAN_SIEGETANK,
-            UNIT_TYPEID.TERRAN_SIEGETANKSIEGED,
-            UNIT_TYPEID.TERRAN_THOR,
-            UNIT_TYPEID.TERRAN_THORAP,
-            UNIT_TYPEID.TERRAN_VIKINGASSAULT,
-            UNIT_TYPEID.TERRAN_VIKINGFIGHTER,
-            UNIT_TYPEID.TERRAN_WIDOWMINE,
-            UNIT_TYPEID.TERRAN_WIDOWMINEBURROWED,
-            UNIT_TYPEID.TERRAN_POINTDEFENSEDRONE,
+            { UNIT_TYPEID.TERRAN_MARINE, new  UnitProperty() { range=5 } },
+            { UNIT_TYPEID.TERRAN_MARAUDER, new  UnitProperty() { range=6 } },
+            { UNIT_TYPEID.TERRAN_BATTLECRUISER, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_CYCLONE, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_GHOST, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_HELLION, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_HELLIONTANK, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_LIBERATOR, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_LIBERATORAG, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_MEDIVAC, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_RAVEN, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_REAPER, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_SIEGETANK, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_SIEGETANKSIEGED, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_THOR, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_THORAP, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_VIKINGASSAULT, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_VIKINGFIGHTER, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_WIDOWMINE, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_WIDOWMINEBURROWED, new  UnitProperty()},
+            { UNIT_TYPEID.TERRAN_POINTDEFENSEDRONE, new  UnitProperty()},
         };
         public static bool isArmy(Unit u)
         {
-            return TerranArmy.Contains((UNIT_TYPEID)u.UnitType);
+            return TerranArmy.Keys.Contains((UNIT_TYPEID)u.UnitType);
         }
         public static TerranBuildPattern[] rampPattens = new TerranBuildPattern[] {
                 new TerranBuildPattern()

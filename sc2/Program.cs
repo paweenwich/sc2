@@ -45,7 +45,7 @@ namespace sc2
                     Race.Terran,
                     //(state => (IEnumerable<SC2APIProtocol.Action>)new SC2APIProtocol.Action[] {})),
                     MasterAgent_MainLoop),
-                    Sc2Game.Participant.CreateComputer(Race.Random, Difficulty.Easy)
+                    Sc2Game.Participant.CreateComputer(Race.Random, Difficulty.MediumHard)
             };
 
             var gameSettings =

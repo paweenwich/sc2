@@ -46,12 +46,23 @@ namespace sc2
                 {
                     answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
                 }
-                Point2D pos = startLocations[0];
-                if (pos != null)
+                // Find target 
+                Point2D targetPos = null;
+                //EnemyUnits enemyUnit = GetEnemyUnits();
+                if (enemyUnit.baseBuilding.Count > 0)
+                {
+                    targetPos = new Point2D() { X = enemyUnit.baseBuilding[0].Pos.X, Y = enemyUnit.baseBuilding[0].Pos.Y };
+                    logDebug("AttackAttack baseBuilding at " + targetPos.ToString());
+                }
+                else
+                {
+                    targetPos = GetNextEnemyExpansion(startLocations[0]);
+                    logDebug("AttackAttack EnemyExpansion at " + targetPos.ToString());
+                }
+                if (targetPos != null)
                 {
                     coolDownCommand.Add(new CoolDownCommandData() { key = "AttackAttack", finishStep = gameLoop + 10 });
-                    logDebug("AttackAttack at " + pos.ToString());
-                    answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
+                    answer.ActionRaw.UnitCommand.TargetWorldSpacePos = targetPos;
                     return answer;
                 }
             }
@@ -106,9 +117,12 @@ namespace sc2
         {
             if (!coolDownCommand.IsDelayed("TrainSCV"))
             {
-                coolDownCommand.Add(new CoolDownCommandData() { key = "TrainSCV", finishStep = gameLoop + 250 });
-                SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.TRAIN_SCV);
-                return answer;
+                if (!cc.HasOrder(ABILITY_ID.TRAIN_SCV))
+                {
+                    coolDownCommand.Add(new CoolDownCommandData() { key = "TrainSCV", finishStep = gameLoop + 250 });
+                    SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.TRAIN_SCV);
+                    return answer;
+                }
             }
             return null;
         }
@@ -117,7 +131,7 @@ namespace sc2
             //if (!coolDownCommand.IsDelayed("TrainFromBarrak"))
             //{
                 //coolDownCommand.Add(new CoolDownCommandData() { key = "TrainFromBarrak", finishStep = gameLoop + 10 });
-                return TrainFromBarrak(cc, ABILITY_ID.TRAIN_MARINE);
+                return TrainUnit(cc, ABILITY_ID.TRAIN_MARINE);
             //}
             //return null;
         }
@@ -126,12 +140,12 @@ namespace sc2
             //if (!coolDownCommand.IsDelayed("TrainFromBarrak"))
             //{
                 //coolDownCommand.Add(new CoolDownCommandData() { key = "TrainFromBarrak", finishStep = gameLoop + 10 });
-                return TrainFromBarrak(cc, ABILITY_ID.TRAIN_MARAUDER);
+                return TrainUnit(cc, ABILITY_ID.TRAIN_MARAUDER);
             //}
             //return null;
         }
 
-        public SC2APIProtocol.Action TrainFromBarrak(Unit cc, ABILITY_ID ability)
+        public SC2APIProtocol.Action TrainUnit(Unit cc, ABILITY_ID ability)
         {
             SC2APIProtocol.Action answer = CreateAction(cc, ability);
             return answer;
@@ -174,11 +188,38 @@ namespace sc2
             {
                 logDebug("BuildBarrak at " + pos.ToString());
                 answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
-                //DumpImage();
                 return answer;
             }
             return null;
         }
+        public SC2APIProtocol.Action BuildFactory(Unit cc)
+        {
+            SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.BUILD_FACTORY);
+            Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 15, UNIT_TYPEID.TERRAN_FACTORY, true);
+            if (pos != null)
+            {
+                logDebug("BuildFactory at " + pos.ToString());
+                answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
+                return answer;
+            }
+            return null;
+        }
+
+        public SC2APIProtocol.Action BuildEngineering(Unit cc)
+        {
+            SC2APIProtocol.Action answer = CreateAction(cc, ABILITY_ID.BUILD_ENGINEERINGBAY);
+            Point2D pos = FindPlaceable((int)cc.Pos.X, (int)cc.Pos.Y, 15, UNIT_TYPEID.TERRAN_ENGINEERINGBAY, true);
+            if (pos != null)
+            {
+                logDebug("BuildEngineering at " + pos.ToString());
+                answer.ActionRaw.UnitCommand.TargetWorldSpacePos = pos;
+                return answer;
+            }
+            return null;
+        }
+
+        
+
         public SC2APIProtocol.Action BuildGas(Unit cc)
         {
             Unit target = FindNearest(cc, UNIT_TYPEID.NEUTRAL_VESPENEGEYSER);
@@ -271,9 +312,28 @@ namespace sc2
             SC2APIProtocol.Action action = null;
             switch ((UNIT_TYPEID)u.UnitType)
             {
+                case UNIT_TYPEID.TERRAN_ENGINEERINGBAY:
+                    {
+                        if (!IsUpgraded(UPGRADE_ID.TERRANINFANTRYWEAPONSLEVEL1))
+                        {
+                            action = BuildOption(u, ABILITY_ID.RESEARCH_TERRANINFANTRYWEAPONS);
+                            break;
+                        }
+                        if (!IsUpgraded(UPGRADE_ID.TERRANINFANTRYARMORSLEVEL1))
+                        {
+                            action = BuildOption(u, ABILITY_ID.RESEARCH_TERRANINFANTRYARMOR);
+                            break;
+                        }
+                        break;
+                    }
+                case UNIT_TYPEID.TERRAN_SUPPLYDEPOT:
+                    {
+                        action = BuildOption(u, ABILITY_ID.MORPH_SUPPLYDEPOT_LOWER);
+                        break;
+                    }
                 case UNIT_TYPEID.TERRAN_BARRACKSTECHLAB:
                     {
-                        if(HasResouce(100, 100, 0))
+                        if (HasResouce(100, 100, 0))
                         {
                             if(!IsUpgraded(UPGRADE_ID.SHIELDWALL))
                             {
@@ -288,6 +348,15 @@ namespace sc2
                                 action = BuildOption(u, ABILITY_ID.RESEARCH_STIMPACK);
                                 break;
                             }
+                        }
+                        if (HasResouce(50, 50, 0))
+                        {
+                            if ((!IsUpgraded(UPGRADE_ID.PUNISHERGRENADES))&& IsUpgraded(UPGRADE_ID.STIMPACK))
+                            {
+                                action = BuildOption(u, ABILITY_ID.RESEARCH_CONCUSSIVESHELLS);
+                                break;
+                            }
+
                         }
                         break;
                     }
@@ -324,6 +393,57 @@ namespace sc2
                         action = GatherMineral(u);
                         break;
                     }
+                case UNIT_TYPEID.TERRAN_FACTORY:
+                    {
+                        if (unitStates[u.Tag].rallyPoint == null)
+                        {
+                            action = SetRallyPoint(u);
+                            if (action != null)
+                            {
+                                unitStates[u.Tag].rallyPoint = action.ActionRaw.UnitCommand.TargetWorldSpacePos;
+                                return action;
+                            }
+                        }
+                        if (HasResouce(50, 50, 1) && (u.AddOnTag == 0))
+                        {
+                            if (!HasBuilding(UNIT_TYPEID.TERRAN_FACTORYTECHLAB))
+                            {
+                                action = BuildOption(u, ABILITY_ID.BUILD_TECHLAB);
+                                return action;
+                            }
+                            else if (!HasBuilding(UNIT_TYPEID.TERRAN_FACTORYREACTOR))
+                            {
+                                action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
+                                return action;
+                            }
+                            else
+                            {
+                                if ((rand.Next() % 2) == 1)
+                                {
+                                    action = BuildOption(u, ABILITY_ID.BUILD_TECHLAB);
+                                    return action;
+                                }
+                                else
+                                {
+                                    action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
+                                    return action;
+                                }
+                            }
+                        }
+                        if (HasResouce(150, 100, 1))
+                        {
+                            Unit addOn = GetUnitFromTag(u.AddOnTag);
+                            /*if ((addOn != null) && (addOn.UnitType == (int)UNIT_TYPEID.TERRAN_FACTORYTECHLAB))
+                            {
+                                action = TrainUnit(u, ABILITY_ID.TRAIN_HELLION);
+                            }
+                            else
+                            {*/
+                                action = TrainUnit(u, ABILITY_ID.TRAIN_CYCLONE);
+                            //}
+                        }
+                        break;
+                    }
                 case UNIT_TYPEID.TERRAN_BARRACKS:
                     {
                         if (unitStates[u.Tag].rallyPoint == null)
@@ -332,42 +452,40 @@ namespace sc2
                             if (action != null)
                             {
                                 unitStates[u.Tag].rallyPoint = action.ActionRaw.UnitCommand.TargetWorldSpacePos;
+                                return action;
                             }
                         }
                         
-                        if(action == null)
+                        if (HasResouce(50, 50, 1) && (u.AddOnTag == 0))
                         {
-                            if (HasResouce(50, 50, 1) && (u.AddOnTag == 0))
+                            if (!HasBuilding(UNIT_TYPEID.TERRAN_BARRACKSTECHLAB))
                             {
-                                if (!HasBuilding(UNIT_TYPEID.TERRAN_BARRACKSTECHLAB))
+                                action = BuildOption(u, ABILITY_ID.BUILD_TECHLAB_BARRACKS);
+                            }
+                            else if (!HasBuilding(UNIT_TYPEID.TERRAN_BARRACKSREACTOR))
+                            {
+                                action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
+                            }
+                            else
+                            {
+                                if ((rand.Next() % 2) == 1)
                                 {
                                     action = BuildOption(u, ABILITY_ID.BUILD_TECHLAB_BARRACKS);
-                                }
-                                else if (!HasBuilding(UNIT_TYPEID.TERRAN_BARRACKSREACTOR))
-                                {
-                                    action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
+                                    //action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
                                 }
                                 else
                                 {
-                                    if ((rand.Next() % 2) == 1)
-                                    {
-                                        action = BuildOption(u, ABILITY_ID.BUILD_TECHLAB_BARRACKS);
-                                        //action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
-                                    }
-                                    else
-                                    {
-                                        action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
-                                    }
+                                    action = BuildOption(u, ABILITY_ID.BUILD_REACTOR);
                                 }
                             }
-                            if ((action == null) && HasResouce(50, 0, 1))
-                            {
-                                Unit addOn = GetUnitFromTag(u.AddOnTag);
-                                if((addOn!=null) && HasResouce(100, 25, 2) && (addOn.UnitType == (int)UNIT_TYPEID.TERRAN_BARRACKSTECHLAB)){
-                                    action = TrainMarauder(u);
-                                } else {
-                                    action = TrainMarine(u);
-                                }
+                        }
+                        if ((action == null) && HasResouce(50, 0, 1))
+                        {
+                            Unit addOn = GetUnitFromTag(u.AddOnTag);
+                            if((addOn!=null) && HasResouce(100, 25, 2) && (addOn.UnitType == (int)UNIT_TYPEID.TERRAN_BARRACKSTECHLAB)){
+                                action = TrainMarauder(u);
+                            } else {
+                                action = TrainMarine(u);
                             }
                         }
                         break;
@@ -380,7 +498,7 @@ namespace sc2
             int ret = 0;
             foreach(Unit scv in SCVs)
             {
-                if (HasOrder(scv, id))
+                if (scv.HasOrder(id))
                 {
                     ret++;
                 }
@@ -426,6 +544,7 @@ namespace sc2
 
         public override SC2APIProtocol.Action Process()
         {
+            int armyToAttack = 15;
             SC2APIProtocol.Action answer = NewAction();
             Observation obs = gameState.NewObservation.Observation;
 
@@ -433,8 +552,11 @@ namespace sc2
             List<Unit> OCCs = GetMyUnits(UNIT_TYPEID.TERRAN_ORBITALCOMMAND);
             List<Unit> SCVs = GetMyUnits(UNIT_TYPEID.TERRAN_SCV);
             List<Unit> Supplys = GetMyUnits(UNIT_TYPEID.TERRAN_SUPPLYDEPOT,true);
+            Supplys.AddRange(GetMyUnits(UNIT_TYPEID.TERRAN_SUPPLYDEPOTLOWERED, true));
             List<Unit> Refineries = GetMyUnits(UNIT_TYPEID.TERRAN_REFINERY);
             List<Unit> Barracks = GetMyUnits(UNIT_TYPEID.TERRAN_BARRACKS);
+            List<Unit> Factories = GetMyUnits(UNIT_TYPEID.TERRAN_FACTORY);
+            List<Unit> Engineerings = GetMyUnits(UNIT_TYPEID.TERRAN_ENGINEERINGBAY);
             MyArmy ArmyUnits =  GetMyArmyUnits();
             int supplyBuildingProgress = CountBuildingOnProgress(SCVs, ABILITY_ID.BUILD_SUPPLYDEPOT);
             int barrakIdleCount = 0;
@@ -444,15 +566,16 @@ namespace sc2
                     barrakIdleCount++;
                 }
             }
-            logPrintf("CC {0} OCC {6} SCV {1} SUPPLY {2} + {5} REFINERY {3} BARRAKS {4} {8} ARMY {7} {9}", 
+            logPrintf("CC {0} OCC {6} SCV {1} SUPPLY {2} + {5} REFINERY {3} BARRAKS {4} {8} FACTORY {11} ENG {12} ARMY {7} {9} {10}", 
                 CCs.Count, SCVs.Count, Supplys.Count, Refineries.Count, Barracks.Count,
-                supplyBuildingProgress, OCCs.Count, ArmyUnits.all.Count, barrakIdleCount, ArmyUnits.engaging.Count
+                supplyBuildingProgress, OCCs.Count, ArmyUnits.all.Count, barrakIdleCount, ArmyUnits.engaging.Count,
+                ArmyUnits.engagingUnit.Count, Factories.Count, Engineerings.Count
             );
 
-            if(ArmyUnits.engaging.Count > 0)
+            if(ArmyUnits.engagingUnit.Count > 0)
             {
                 List<Unit> stimUnits = new List<Unit>();
-                foreach (Unit u in ArmyUnits.all)
+                foreach (Unit u in ArmyUnits.engagingUnit)
                 {
                     if (IsUpgraded(UPGRADE_ID.STIMPACK) && u.CanStimpack())
                     {
@@ -470,12 +593,12 @@ namespace sc2
                 }
             }
 
-            if (ArmyUnits.all.Count > 5)
+            if (IsUpgraded(UPGRADE_ID.STIMPACK) && ArmyUnits.all.Count > armyToAttack)
             {
                 List<Unit> idleArmy = new List<Unit>();
                 foreach (Unit u in ArmyUnits.all)
                 {
-                    if (!HasOrder(u, ABILITY_ID.ATTACK_ATTACK))
+                    if (!u.HasOrder(ABILITY_ID.ATTACK_ATTACK))
                     {
                         idleArmy.Add(u);
                     }
@@ -490,14 +613,22 @@ namespace sc2
                 }
             }
 
+            //Avoid high ground enemy
+            if(enemyUnit.armyUnit.Count > 0)
+            {
+
+            }
 
             Unit scv = null;
             foreach (Unit u in SCVs)
             {
                 
-                if (HasOrder(u, ABILITY_ID.BUILD_SUPPLYDEPOT)||
-                    HasOrder(u, ABILITY_ID.BUILD_REFINERY)||
-                    HasOrder(u, ABILITY_ID.BUILD_BARRACKS)
+                if (u.HasOrder(ABILITY_ID.BUILD_SUPPLYDEPOT)||
+                    u.HasOrder(ABILITY_ID.BUILD_REFINERY)||
+                    u.HasOrder(ABILITY_ID.BUILD_BARRACKS)||
+                    u.HasOrder(ABILITY_ID.BUILD_ARMORY) ||
+                    u.HasOrder(ABILITY_ID.BUILD_FACTORY) ||
+                    u.HasOrder(ABILITY_ID.BUILD_STARPORT) 
                     )
                 {
                     //logDebug("Supply is building by " + u.ToString());
@@ -510,7 +641,7 @@ namespace sc2
             if (scv != null)
             {
                 //return answer;
-                if (HasResouce(100, 0, 0) && (GetAvailableSupplyRoom() < 5) && (supplyBuildingProgress < 1))
+                if (HasResouce(100, 0, 0) && (GetAvailableSupplyRoom() < 10) && (supplyBuildingProgress < 1))
                 {
                     SC2APIProtocol.Action ret = BuildSupply(scv);
                     if (ret != null)
@@ -538,6 +669,34 @@ namespace sc2
                         {
                             logDebug("BuildBarrak " + scv);
                             coolDownCommand.Add(new CoolDownCommandData() { key = "BuildBarrak", finishStep = gameLoop + 50 });
+                            return ret;
+                        }
+                    }
+                }
+
+                if (HasResouce(300, 100, 0) && (Supplys.Count > 0) && (Barracks.Count >= 3) && (Factories.Count < 1))
+                {
+                    if (!coolDownCommand.IsDelayed("BuildFactory"))
+                    {
+                        SC2APIProtocol.Action ret = BuildFactory(scv);
+                        if (ret != null)
+                        {
+                            logDebug("BuildFactory " + scv);
+                            coolDownCommand.Add(new CoolDownCommandData() { key = "BuildFactory", finishStep = gameLoop + 50 });
+                            return ret;
+                        }
+                    }
+                }
+
+                if (HasResouce(300, 100, 0) && (Factories.Count >= 1) && (Engineerings.Count <1))
+                {
+                    if (!coolDownCommand.IsDelayed("BuildEngineering"))
+                    {
+                        SC2APIProtocol.Action ret = BuildEngineering(scv);
+                        if (ret != null)
+                        {
+                            logDebug("BuildEngineering " + scv);
+                            coolDownCommand.Add(new CoolDownCommandData() { key = "BuildEngineering", finishStep = gameLoop + 50 });
                             return ret;
                         }
                     }

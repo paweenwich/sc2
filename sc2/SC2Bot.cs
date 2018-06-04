@@ -60,8 +60,19 @@ namespace sc2
     public class MyArmy
     {
         public List<Unit> all = new List<Unit>();
-        public List<Unit> engaging = new List<Unit>();
+        public List<Unit> engaging = new List<Unit>();          // All engaging
+        public List<Unit> engagingUnit = new List<Unit>();      // engaging enemy unit
     }
+
+    public class EnemyUnits
+    {
+        public List<Unit> all = new List<Unit>();
+        public List<Unit> baseBuilding = new List<Unit>();
+        public List<Unit> armyUnit = new List<Unit>();
+        //public List<Unit> engaging = new List<Unit>();          // All engaging
+        //public List<Unit> engagingUnit = new List<Unit>();      // engaging enemy unit
+    }
+
 
 
     public class CoolDownCommandData
@@ -116,6 +127,8 @@ namespace sc2
 
     public class SC2UnitState
     {
+        public Unit unit;
+        //public bool isHPDecrease = false;
         public Point2D rallyPoint;
         public HashSet<ABILITY_ID> researched = new HashSet<ABILITY_ID>();
     }
@@ -138,6 +151,9 @@ namespace sc2
         public Dictionary<ulong, SC2UnitState> unitStates= new Dictionary<ulong, SC2UnitState>();
         public Dictionary<String, bool> boolProperty = new Dictionary<String, bool>();
         public Point2D[] startLocations;
+        public List<Point2D> baseLocations;
+        public EnemyUnits enemyUnit ;
+        
         public void logDebug(String data)
         {
             if (GetBoolProperty("Log"))
@@ -213,6 +229,8 @@ namespace sc2
             this.gameLoop = (int)gameState.NewObservation.Observation.GameLoop;
             this.allUnits = gameState.NewObservation.Observation.RawData.Units.ToList();
             this.upgradeIDs = gameState.NewObservation.Observation.RawData.Player.UpgradeIds;
+            this.enemyUnit = GetEnemyUnits();
+            this.baseLocations = allUnits.FindBaseLocation();
 
             coolDownCommand.Update(this.gameLoop);
             logPrintf("\n{0} Update {1} {2} {3}", this.GetType().Name, this.gameLoop, coolDownCommand.ToString(), this.upgradeIDs.ToString());
@@ -256,7 +274,20 @@ namespace sc2
             { 
                 if (!unitStates.ContainsKey(a.Tag))
                 {
-                    unitStates[a.Tag] = new SC2UnitState();
+                    unitStates[a.Tag] = new SC2UnitState { unit = a };
+                }else
+                {
+                    Unit u = unitStates[a.Tag].unit;
+                    // update unit 
+                    /*if ((a.Health < u.Health) && a.HealthMax == u.HealthMax)
+                    {
+                        logPrintf("HP DECREASE {0}",a.ToStringEx());
+                        unitStates[a.Tag].isHPDecrease = true;
+                    }else
+                    {
+                        unitStates[a.Tag].isHPDecrease = false;
+                    }*/
+                    unitStates[a.Tag].unit = a;
                 }
             }
 
@@ -270,7 +301,7 @@ namespace sc2
                         SC2APIProtocol.Action action = DoIdle(a);
                         if (action != null)
                         {
-                            logDebug("ACTION " + action.ToString());
+                            logDebug("ACTION " + action.ToStringEx());
                             return action;
                         }
                     }
@@ -399,6 +430,14 @@ namespace sc2
                 {
                     return true;
                 }
+                if ((u.UnitType == (int)UNIT_TYPEID.TERRAN_BARRACKS)|| (u.UnitType == (int)UNIT_TYPEID.TERRAN_FACTORY)
+                    || (u.UnitType == (int)UNIT_TYPEID.TERRAN_STARPORT))
+                {
+                    if(u.OverlapWith(x-2, y, 0.01f))
+                    {
+                        return true;
+                    }
+                }
             }
             return false;
         }
@@ -492,18 +531,48 @@ namespace sc2
             return false;
         }
 
+        private EnemyUnits GetEnemyUnits()
+        {
+            EnemyUnits ret = new EnemyUnits();
+            foreach (Unit u in allUnits)
+            {
+                if (u.Alliance == Alliance.Enemy)
+                {
+                    ret.all.Add(u);
+                    if (u.IsBaseBuilding())
+                    {
+                        ret.baseBuilding.Add(u);
+                    }else
+                    {
+                        if (u.IsArmyUnit())
+                        {
+                            ret.armyUnit.Add(u);
+                        }
+                    }
+                }
+            }
+            return ret;
+        }
 
         public MyArmy GetMyArmyUnits()
         {
             MyArmy ret = new MyArmy();
             foreach (Unit u in allUnits)
             {
-                if (IsArmyUnit(u))
+                if (IsArmyUnit(u) && (u.Alliance == Alliance.Self))
                 {
                     ret.all.Add(u);
                     if (u.EngagedTargetTag != 0)
                     {
                         ret.engaging.Add(u);
+                        Unit targetUnit = GetUnitFromTag(u.EngagedTargetTag);
+                        if (targetUnit != null)
+                        {
+                            if (targetUnit.IsArmyUnit())
+                            {
+                                ret.engagingUnit.Add(u);
+                            }
+                        }
                     }
                 }
             }
@@ -551,7 +620,7 @@ namespace sc2
             }
             return ret;
         }
-        public Unit GetUnitFromTag(ulong tag)
+       /* public Unit GetUnitFromTag(ulong tag)
         {
             foreach(Unit u in allUnits)
             {
@@ -561,7 +630,7 @@ namespace sc2
                 }
             }
             return null;
-        }
+        }*/
         public virtual bool IsUpgraded(UPGRADE_ID upgrade)
         {
             return (upgradeIDs.Contains((uint)upgrade));
@@ -571,6 +640,8 @@ namespace sc2
         {
             return (u.Orders.Count == 0) && (u.BuildProgress == 1);
         }
+
+        /*
         public bool HasOrder(Unit u, ABILITY_ID ability)
         {
             foreach(UnitOrder o in u.Orders)
@@ -581,7 +652,7 @@ namespace sc2
                 }
             }
             return false;
-        }
+        }*/
 
         public bool HasBuilding(UNIT_TYPEID unit)
         {
@@ -657,6 +728,31 @@ namespace sc2
         public override List<string> GetBoolProperty()
         {
             return boolProperty.Keys.ToList();
+        }
+
+        public Unit GetUnitFromTag(ulong tag)
+        {
+            if (unitStates.ContainsKey(tag))
+            {
+                return unitStates[tag].unit;
+            }
+            return null;
+        }
+        public Point2D GetNextEnemyExpansion(Point2D fromPos)
+        {
+            float minDist = 1000000;
+            Point2D ret = null;
+            foreach(Point2D p in baseLocations)
+            {
+                float dist = p.Dist(fromPos);
+                if ( dist < 10) continue;
+                if ( dist < minDist)
+                {
+                    ret = p;
+                    minDist = dist;
+                }
+            }
+            return ret;
         }
     }
 }

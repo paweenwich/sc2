@@ -1,4 +1,5 @@
-﻿using SC2APIProtocol;
+﻿using Accord.MachineLearning;
+using SC2APIProtocol;
 using Starcraft2;
 using System;
 using System.Collections.Generic;
@@ -107,16 +108,27 @@ namespace sc2
         }
         private void test2ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ImageData data = new ImageData();
-            data.Load(@"TerrainHeight.bin");
-            foreach (TerranBuildPattern tbp in TerranData.rampPattens)
+            ResponseObservation obs = new ResponseObservation();
+            obs.Load(@"NewObservation.bin");
+
+            List<Unit> allUnits = obs.Observation.RawData.Units.ToList();
+            ImageData heightMap = new ImageData();
+            heightMap.Load(@"TerrainHeight.bin");
+            ImageData placeMap = new ImageData();
+            placeMap.Load(@"PlacementGrid.bin");
+            placeMap = SC2Bot.CreatePlaceableImageData(placeMap, allUnits);
+            // collect base expansion
+            List<Unit> gas = allUnits.GetUnits(UNIT_TYPEID.NEUTRAL_VESPENEGEYSER);
+            //List<Point2D> points = allUnits.FindBaseLocation();
+            Console.WriteLine("" + gas.Count);
+            double[][] data = new double[gas.Count][];
+            for(int i = 0; i < gas.Count; i++)
             {
-                List<Point2D> ramp = data.FindPattern(tbp.pattern);
-                foreach (Point2D p in ramp)
-                {
-                    Console.WriteLine(p.ToString());
-                }
+                data[i] = new double[] { gas[i].Pos.X, gas[i].Pos.Y };
             }
+            KMeans kmeans = new KMeans(k: gas.Count/2);
+            KMeansClusterCollection clusters  = kmeans.Learn(data);
+            
         }
         public Pen penRed = new Pen(System.Drawing.Color.Red, 5);
         public Pen penGreen = new Pen(System.Drawing.Color.Green, 5);
