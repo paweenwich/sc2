@@ -9,6 +9,27 @@ using System.Windows.Forms;
 
 namespace sc2
 {
+    public class SC2GameState
+    {
+        public ResponseObservation NewObservation;
+        public ResponseGameInfo GameInfo;
+        public List<SC2APIProtocol.Action> LastActions;
+        public ResponseObservation LastObservation;
+        private SC2GameState()
+        {
+
+        }
+        public SC2GameState(GameState gameState)
+        {
+            NewObservation = gameState.NewObservation;
+            GameInfo = gameState.GameInfo;
+            LastActions = gameState.LastActions.ToList();
+            if (gameState.LastObservation != null)
+            {
+                LastObservation = gameState.LastObservation.Value;
+            }
+        }
+    }
 
 
     static class Program
@@ -27,8 +48,8 @@ namespace sc2
 
         public static IEnumerable<SC2APIProtocol.Action> MasterAgent_MainLoop(GameState gameState)
         {
-
-            SC2APIProtocol.Action answer = bot.Update(gameState);
+            SC2GameState gs = new SC2GameState(gameState);
+            SC2APIProtocol.Action answer = bot.Update(gs);
             yield return answer;
         }
         public static void RunSC2()
@@ -45,13 +66,13 @@ namespace sc2
                     Race.Terran,
                     //(state => (IEnumerable<SC2APIProtocol.Action>)new SC2APIProtocol.Action[] {})),
                     MasterAgent_MainLoop),
-                    Sc2Game.Participant.CreateComputer(Race.Terran, Difficulty.MediumHard)
+                    Sc2Game.Participant.CreateComputer(Race.Random, Difficulty.Hard)
             };
 
             var gameSettings =
                 Sc2Game.GameSettings.OfUserSettings(userSettings)
                 .WithMap(@"Simple64.SC2Map")
-                .WithRealtime(true)
+                //.WithRealtime(true)
                 //.WithStepsize(10)
                 ;
             //.WithRealtime(true);

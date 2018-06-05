@@ -1,4 +1,5 @@
 ﻿using Accord.MachineLearning;
+using Newtonsoft.Json;
 using SC2APIProtocol;
 using Starcraft2;
 using System;
@@ -130,14 +131,14 @@ namespace sc2
             KMeansClusterCollection clusters  = kmeans.Learn(data);
             
         }
-        public Pen penRed = new Pen(System.Drawing.Color.Red, 5);
-        public Pen penGreen = new Pen(System.Drawing.Color.Green, 5);
-        public Pen penBlue = new Pen(System.Drawing.Color.Blue, 5);
-        public Pen penWhite = new Pen(System.Drawing.Color.White, 5);
-        public Pen penYellow = new Pen(System.Drawing.Color.Yellow, 5);
-        public Pen penBlack = new Pen(System.Drawing.Color.Black, 5);
-        public Pen penOrange = new Pen(System.Drawing.Color.Orange, 5);
-        public Pen penViolet = new Pen(System.Drawing.Color.Violet, 5);
+        public static Pen penRed = new Pen(System.Drawing.Color.Red, 5);
+        public static Pen penGreen = new Pen(System.Drawing.Color.Green, 5);
+        public static Pen penBlue = new Pen(System.Drawing.Color.Blue, 5);
+        public static Pen penWhite = new Pen(System.Drawing.Color.White, 5);
+        public static Pen penYellow = new Pen(System.Drawing.Color.Yellow, 5);
+        public static Pen penBlack = new Pen(System.Drawing.Color.Black, 5);
+        public static Pen penOrange = new Pen(System.Drawing.Color.Orange, 5);
+        public static Pen penViolet = new Pen(System.Drawing.Color.Violet, 5);
 
 /*        public byte[][] block2x2 = new byte[][]
         {
@@ -261,8 +262,19 @@ namespace sc2
         }
         private void saveStateToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SC2Bot sc2bot = (SC2Bot) Program.bot;
-            sc2bot.gameState.NewObservation.Save(@"NewObservation.bin");
+            //SC2Bot sc2bot = (SC2Bot) Program.bot;
+            //sc2bot.newObservation.Save(@"NewObservation.bin");
+            //var settings = new SharpSerializerBinarySettings(BinarySerializationMode.Burst);
+            //var serializer = new SharpSerializer(false);
+            //serializer.Serialize(sc2bot.gameState, "sc2bot.xml");
+            TerranBot tb = new TerranBot();
+            string output = JsonConvert.SerializeObject(tb);
+            tb = JsonConvert.DeserializeObject<TerranBot>(output);
+            //Console.WriteLine(output);
+        }
+
+        private void test4ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
         }
     }
 

@@ -353,7 +353,7 @@ namespace sc2
                     {
                         if (HasResouce(100, 100, 0))
                         {
-                            if((!IsUpgraded(UPGRADE_ID.SHIELDWALL)) && (myUnit.building.hasOrder(ABILITY_ID.RESEARCH_COMBATSHIELD)))
+                            if((!IsUpgraded(UPGRADE_ID.SHIELDWALL)) && (!myUnit.building.hasOrder(ABILITY_ID.RESEARCH_COMBATSHIELD)))
                             {
                                 action = BuildOption(u, ABILITY_ID.RESEARCH_COMBATSHIELD);
                                 break;
@@ -361,7 +361,7 @@ namespace sc2
                         }
                         if (HasResouce(100, 100, 0))
                         {
-                            if ((!IsUpgraded(UPGRADE_ID.STIMPACK)) && (myUnit.building.hasOrder(ABILITY_ID.RESEARCH_STIMPACK)))
+                            if ((!IsUpgraded(UPGRADE_ID.STIMPACK)) && (!myUnit.building.hasOrder(ABILITY_ID.RESEARCH_STIMPACK)))
                             {
                                 action = BuildOption(u, ABILITY_ID.RESEARCH_STIMPACK);
                                 break;
@@ -540,7 +540,7 @@ namespace sc2
             return ret;
         }
         
-        public override void OnInit(GameState gameState)
+        public override void OnInit(SC2GameState gameState)
         {
             //Seqarch for ramp
             foreach (TerranBuildPattern tbp in TerranData.rampPattens)
@@ -560,7 +560,7 @@ namespace sc2
         {
             int armyToAttack = 15;
             SC2APIProtocol.Action answer = NewAction();
-            Observation obs = gameState.NewObservation.Observation;
+            Observation obs = newObservation.Observation;
 
             List<Unit> CCs = GetMyUnits(UNIT_TYPEID.TERRAN_COMMANDCENTER);
             List<Unit> OCCs = GetMyUnits(UNIT_TYPEID.TERRAN_ORBITALCOMMAND);

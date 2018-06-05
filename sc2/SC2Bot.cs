@@ -8,13 +8,15 @@ using SC2APIProtocol;
 using Starcraft2;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using Newtonsoft.Json;
 
 namespace sc2
 {
     public abstract class ISC2Bot
     {
-        public abstract void Init(GameState gameState);
-        public abstract SC2APIProtocol.Action Update(GameState gameState);
+        public abstract void Init(SC2GameState gameState);
+        public abstract SC2APIProtocol.Action Update(SC2GameState gameState);
         public abstract void SendCommand(SC2Command cmd);
         public abstract void SetBoolProperty(String name,bool value);
         public abstract bool GetBoolProperty(String name);
@@ -140,7 +142,8 @@ namespace sc2
         protected int prevStep = -1;
         protected bool first = true;
         public int gameLoop = 0;
-        public GameState gameState;
+        public ResponseObservation newObservation;
+        public SC2GameState gameState;
         public CoolDownCommand coolDownCommand = new CoolDownCommand();
         public List<SC2Command> commandQueue  = new List<SC2Command>();
         public Bitmap bmpTerrainHeight;
@@ -201,7 +204,7 @@ namespace sc2
             SetBoolProperty("DumpWorker", false);
         }
 
-        public override void Init(GameState gameState)
+        public override void Init(SC2GameState gameState)
         {
             logDebug(this.GetType().Name);
             startLocations = gameState.GameInfo.StartRaw.StartLocations.ToArray();
@@ -225,13 +228,15 @@ namespace sc2
             OnInit(gameState);
         }
 
-        public override SC2APIProtocol.Action Update(GameState gameState)
+        public override SC2APIProtocol.Action Update(SC2GameState gameState)
         {
+
             SC2APIProtocol.Action answer = NewAction();
             this.gameState = gameState;
-            this.gameLoop = (int)gameState.NewObservation.Observation.GameLoop;
-            this.allUnits = gameState.NewObservation.Observation.RawData.Units.ToList();
-            this.upgradeIDs = gameState.NewObservation.Observation.RawData.Player.UpgradeIds;
+            this.newObservation = gameState.NewObservation;
+            this.gameLoop = (int)newObservation.Observation.GameLoop;
+            this.allUnits = newObservation.Observation.RawData.Units.ToList();
+            this.upgradeIDs = newObservation.Observation.RawData.Player.UpgradeIds;
             this.enemyUnit = GetEnemyUnits();
             this.myUnit = GetMyUnits();
             this.baseLocations = allUnits.FindBaseLocation();
@@ -258,8 +263,13 @@ namespace sc2
             }
             if (gameLoop % 50 == 0)
             {
-                DumpUnits();
-                DumpImage();
+                if (GetBoolProperty("Log"))
+                { 
+                    DumpUnits();
+                    //DumpImage();
+                }
+                String output = JsonConvert.SerializeObject(this);
+                File.WriteAllText(String.Format(@"gameState/{0}.json", gameLoop), output);
             }
             //
             if (commandQueue.Count > 0)
@@ -326,43 +336,7 @@ namespace sc2
                 return answer;
             }
         }
-
-        public Pen penRed = new Pen(System.Drawing.Color.Red,2);
-        public Pen penGreen = new Pen(System.Drawing.Color.Green,2);
-        public Pen penBlue = new Pen(System.Drawing.Color.Blue,2);
-        public Pen penWhite = new Pen(System.Drawing.Color.White, 2);
-        public Pen penYellow = new Pen(System.Drawing.Color.Yellow, 2);
         public Random rand = new Random();
-        public void DumpImage()
-        {
-            {
-                Bitmap b = gameState.NewObservation.Observation.RawData.MapState.Visibility.ToBitmap();
-                b.Save(@"Visibility.bmp", ImageFormat.Bmp);
-
-                //Pen myPen = new Pen(System.Drawing.Color.Green, 1);
-                Bitmap bg = placementData.bmp;
-                float scale = 50.0f;
-                Bitmap bv = terrainHeightData.imgData.ToDebugBitmap(scale, true);
-                //Bitmap bv = new Bitmap((int)(bg.Width * scale),(int)(bg.Height * scale), PixelFormat.Format32bppArgb);
-                Graphics g = Graphics.FromImage(bv);
-                //g.Clear(System.Drawing.Color.Black);
-                foreach (Unit u in allUnits)
-                {
-                    Pen pen = penWhite;
-                    switch (u.Alliance)
-                    {
-                        case Alliance.Enemy: pen = penRed; break;
-                        case Alliance.Neutral: pen = penGreen; break;
-                        case Alliance.Self: pen = penBlue;break;
-                    }
-                    g.DrawCircle(pen, u.Pos.X * scale,(b.Height - u.Pos.Y) * scale, u.Radius * scale);
-                }
-                g.Save();
-                g.Dispose();
-                bv.Save(@"Units.png", ImageFormat.Png);
-            }
-
-        }
 
         public void DumpUnits()
         {
@@ -678,13 +652,13 @@ namespace sc2
 
         public int GetAvailableSupplyRoom()
         {
-            PlayerCommon common = gameState.NewObservation.Observation.PlayerCommon;
+            PlayerCommon common = newObservation.Observation.PlayerCommon;
             return (int)(common.FoodCap - common.FoodUsed);
         }
 
         public bool HasResouce(int mineral,int gas=0,int food=0)
         {
-            PlayerCommon common = gameState.NewObservation.Observation.PlayerCommon;
+            PlayerCommon common = newObservation.Observation.PlayerCommon;
             if ((common.Minerals >= mineral)
                 && (common.Vespene >= gas)
                 && (GetAvailableSupplyRoom() >= food)
@@ -709,7 +683,7 @@ namespace sc2
         {
             SC2APIProtocol.Action answer = NewAction();
 
-            Observation obs = gameState.NewObservation.Observation;
+            Observation obs = newObservation.Observation;
             logPrintf("Game loop {0}", obs.GameLoop);
             DumpUnits();
             return answer;
@@ -725,7 +699,7 @@ namespace sc2
             return null;
         }
 
-        public virtual void OnInit(GameState gameState)
+        public virtual void OnInit(SC2GameState gameState)
         {
 
         }
