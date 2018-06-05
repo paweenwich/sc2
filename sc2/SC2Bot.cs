@@ -225,6 +225,14 @@ namespace sc2
             pathingGridData.imgData.Save(@"PathingGrid.bin");
             pathingGridData.imgData.ToDebugBitmap().Save(@"PathingGridDebug.png", ImageFormat.Png);
 
+            DirectoryInfo dir = new DirectoryInfo("gameState");
+            if (dir.Exists)
+            {
+                dir.Empty();
+            }else
+            {
+                dir.Create();
+            }
             OnInit(gameState);
         }
 
