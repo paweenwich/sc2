@@ -45,19 +45,37 @@ namespace sc2
                 foreach (Unit cc in idleArmy)
                 {
                     answer.ActionRaw.UnitCommand.UnitTags.Add(cc.Tag);
+                    logDebug("My Idle Army " + cc.ToString());
                 }
                 // Find target 
                 Point2D targetPos = null;
                 //EnemyUnits enemyUnit = GetEnemyUnits();
                 if (enemyUnit.baseBuilding.Count > 0)
                 {
+                    foreach(Unit b in enemyUnit.baseBuilding)
+                    {
+                        logDebug("baseBuilding " + b.ToStringEx());
+                    }
                     targetPos = new Point2D() { X = enemyUnit.baseBuilding[0].Pos.X, Y = enemyUnit.baseBuilding[0].Pos.Y };
                     logDebug("AttackAttack baseBuilding at " + targetPos.ToString());
+                    logDebug(enemyUnit.baseBuilding[0].ToStringEx());
                 }
                 else
                 {
-                    targetPos = GetNextEnemyExpansion(startLocations[0]);
-                    logDebug("AttackAttack EnemyExpansion at " + targetPos.ToString());
+                    if (enemyUnit.all.Count > 0){
+                        foreach (Unit b in enemyUnit.all)
+                        {
+                            logDebug("enemyUnit " + b.ToStringEx());
+                        }
+                        targetPos = new Point2D() { X = enemyUnit.all[0].Pos.X, Y = enemyUnit.all[0].Pos.Y };
+                        logDebug("AttackAttack enemyUnit at " + targetPos.ToString());
+                        logDebug(enemyUnit.all[0].ToStringEx());
+
+                    }
+                    else {
+                        targetPos = GetNextEnemyExpansion(startLocations[0]);
+                        logDebug("AttackAttack EnemyExpansion at " + targetPos.ToString());
+                    }
                 }
                 if (targetPos != null)
                 {
@@ -335,7 +353,7 @@ namespace sc2
                     {
                         if (HasResouce(100, 100, 0))
                         {
-                            if(!IsUpgraded(UPGRADE_ID.SHIELDWALL))
+                            if((!IsUpgraded(UPGRADE_ID.SHIELDWALL)) && (myUnit.building.hasOrder(ABILITY_ID.RESEARCH_COMBATSHIELD)))
                             {
                                 action = BuildOption(u, ABILITY_ID.RESEARCH_COMBATSHIELD);
                                 break;
@@ -343,7 +361,7 @@ namespace sc2
                         }
                         if (HasResouce(100, 100, 0))
                         {
-                            if (!IsUpgraded(UPGRADE_ID.STIMPACK))
+                            if ((!IsUpgraded(UPGRADE_ID.STIMPACK)) && (myUnit.building.hasOrder(ABILITY_ID.RESEARCH_STIMPACK)))
                             {
                                 action = BuildOption(u, ABILITY_ID.RESEARCH_STIMPACK);
                                 break;
@@ -537,10 +555,6 @@ namespace sc2
                 }
             }
         }
-        public override bool IsArmyUnit(Unit u)
-        {
-            return TerranData.isArmy(u);
-        }
 
         public override SC2APIProtocol.Action Process()
         {
@@ -557,7 +571,7 @@ namespace sc2
             List<Unit> Barracks = GetMyUnits(UNIT_TYPEID.TERRAN_BARRACKS);
             List<Unit> Factories = GetMyUnits(UNIT_TYPEID.TERRAN_FACTORY);
             List<Unit> Engineerings = GetMyUnits(UNIT_TYPEID.TERRAN_ENGINEERINGBAY);
-            MyArmy ArmyUnits =  GetMyArmyUnits();
+            //MyArmy ArmyUnits =  GetMyArmyUnits();
             int supplyBuildingProgress = CountBuildingOnProgress(SCVs, ABILITY_ID.BUILD_SUPPLYDEPOT);
             int barrakIdleCount = 0;
             foreach(Unit u in Barracks){
@@ -568,14 +582,14 @@ namespace sc2
             }
             logPrintf("CC {0} OCC {6} SCV {1} SUPPLY {2} + {5} REFINERY {3} BARRAKS {4} {8} FACTORY {11} ENG {12} ARMY {7} {9} {10}", 
                 CCs.Count, SCVs.Count, Supplys.Count, Refineries.Count, Barracks.Count,
-                supplyBuildingProgress, OCCs.Count, ArmyUnits.all.Count, barrakIdleCount, ArmyUnits.engaging.Count,
-                ArmyUnits.engagingUnit.Count, Factories.Count, Engineerings.Count
+                supplyBuildingProgress, OCCs.Count, myUnit.armyUnit.Count, barrakIdleCount, myUnit.engaging.Count,
+                myUnit.engagingUnit.Count, Factories.Count, Engineerings.Count
             );
 
-            if(ArmyUnits.engagingUnit.Count > 0)
+            if(myUnit.engagingUnit.Count > 0)
             {
                 List<Unit> stimUnits = new List<Unit>();
-                foreach (Unit u in ArmyUnits.engagingUnit)
+                foreach (Unit u in myUnit.engagingUnit)
                 {
                     if (IsUpgraded(UPGRADE_ID.STIMPACK) && u.CanStimpack())
                     {
@@ -593,10 +607,10 @@ namespace sc2
                 }
             }
 
-            if (IsUpgraded(UPGRADE_ID.STIMPACK) && ArmyUnits.all.Count > armyToAttack)
+            if (IsUpgraded(UPGRADE_ID.STIMPACK) && myUnit.armyUnit.Count > armyToAttack)
             {
                 List<Unit> idleArmy = new List<Unit>();
-                foreach (Unit u in ArmyUnits.all)
+                foreach (Unit u in myUnit.armyUnit)
                 {
                     if (!u.HasOrder(ABILITY_ID.ATTACK_ATTACK))
                     {
@@ -651,7 +665,7 @@ namespace sc2
                     }
                 }
 
-                if (HasResouce(75, 0, 0) && (Supplys.Count > 0) && (Refineries.Count < 2) && (Barracks.Count >0 ))
+                if (HasResouce(75, 0, 0) && (Supplys.Count > 0) && (Refineries.Count < 1) && (Barracks.Count >0 ))
                 {
                     SC2APIProtocol.Action ret = BuildGas(scv);
                     if (ret != null)
@@ -660,7 +674,17 @@ namespace sc2
                         return ret;
                     }
                 }
-                if(HasResouce(150, 0, 0) && (Supplys.Count >0) && (Barracks.Count < 3))
+                if (HasResouce(75, 0, 0) && (Supplys.Count > 0) && (Refineries.Count < 2) && (Factories.Count > 0))
+                {
+                    SC2APIProtocol.Action ret = BuildGas(scv);
+                    if (ret != null)
+                    {
+                        logDebug("BuildGas " + scv);
+                        return ret;
+                    }
+                }
+
+                if (HasResouce(150, 0, 0) && (Supplys.Count >0) && (Barracks.Count < 3))
                 {
                     if (!coolDownCommand.IsDelayed("BuildBarrak"))
                     {

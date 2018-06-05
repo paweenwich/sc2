@@ -57,11 +57,13 @@ namespace sc2
     {
     }
 
-    public class MyArmy
+    public class MyUnits
     {
         public List<Unit> all = new List<Unit>();
+        public List<Unit> armyUnit = new List<Unit>();          // 
         public List<Unit> engaging = new List<Unit>();          // All engaging
         public List<Unit> engagingUnit = new List<Unit>();      // engaging enemy unit
+        public List<Unit> building = new List<Unit>();          // building
     }
 
     public class EnemyUnits
@@ -153,7 +155,8 @@ namespace sc2
         public Point2D[] startLocations;
         public List<Point2D> baseLocations;
         public EnemyUnits enemyUnit ;
-        
+        public MyUnits myUnit;
+
         public void logDebug(String data)
         {
             if (GetBoolProperty("Log"))
@@ -230,6 +233,7 @@ namespace sc2
             this.allUnits = gameState.NewObservation.Observation.RawData.Units.ToList();
             this.upgradeIDs = gameState.NewObservation.Observation.RawData.Player.UpgradeIds;
             this.enemyUnit = GetEnemyUnits();
+            this.myUnit = GetMyUnits();
             this.baseLocations = allUnits.FindBaseLocation();
 
             coolDownCommand.Update(this.gameLoop);
@@ -294,7 +298,7 @@ namespace sc2
             if (GetBoolProperty("Auto"))
             {
                 //DoIdle
-                foreach (Unit a in GetMyUnits())
+                foreach (Unit a in myUnit.all)
                 {
                     if (IsIdle(a))
                     {
@@ -554,25 +558,31 @@ namespace sc2
             return ret;
         }
 
-        public MyArmy GetMyArmyUnits()
+        public MyUnits GetMyUnits()
         {
-            MyArmy ret = new MyArmy();
+            MyUnits ret = new MyUnits();
             foreach (Unit u in allUnits)
             {
-                if (IsArmyUnit(u) && (u.Alliance == Alliance.Self))
-                {
+                if (u.Alliance == Alliance.Self) {
                     ret.all.Add(u);
-                    if (u.EngagedTargetTag != 0)
+                    if (u.IsArmyUnit())
                     {
-                        ret.engaging.Add(u);
-                        Unit targetUnit = GetUnitFromTag(u.EngagedTargetTag);
-                        if (targetUnit != null)
+                        ret.armyUnit.Add(u);
+                        if (u.EngagedTargetTag != 0)
                         {
-                            if (targetUnit.IsArmyUnit())
+                            ret.engaging.Add(u);
+                            Unit targetUnit = GetUnitFromTag(u.EngagedTargetTag);
+                            if (targetUnit != null)
                             {
-                                ret.engagingUnit.Add(u);
+                                if (targetUnit.IsArmyUnit())
+                                {
+                                    ret.engagingUnit.Add(u);
+                                }
                             }
                         }
+                    }else
+                    {
+                        ret.building.Add(u);
                     }
                 }
             }
@@ -656,7 +666,7 @@ namespace sc2
 
         public bool HasBuilding(UNIT_TYPEID unit)
         {
-            foreach(Unit u in GetMyUnits())
+            foreach(Unit u in myUnit.building)
             {
                 if(u.UnitType == (int)unit)
                 {
@@ -718,11 +728,6 @@ namespace sc2
         public virtual void OnInit(GameState gameState)
         {
 
-        }
-
-        public virtual bool IsArmyUnit(Unit u)
-        {
-            throw new NotImplementedException("IsArmyUnit");
         }
 
         public override List<string> GetBoolProperty()

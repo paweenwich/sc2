@@ -177,7 +177,6 @@ namespace sc2
         {
             List<Point2D> ret = new List<Point2D>();
             List<Unit> gas = self.GetUnits(UNIT_TYPEID.NEUTRAL_VESPENEGEYSER);
-            Console.WriteLine("" + gas.Count);
             double[][] data = new double[gas.Count][];
             for (int i = 0; i < gas.Count; i++)
             {
@@ -190,6 +189,18 @@ namespace sc2
                 ret.Add(new Point2D {X = (float)kmeans.Centroids[i][0], Y = (float)kmeans.Centroids[i][1] });
             }
             return ret;
+        }
+
+        public static bool hasOrder(this List<Unit> self, ABILITY_ID ability)
+        {
+            foreach(Unit u in self)
+            {
+                if (u.HasOrder(ability))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
     }
