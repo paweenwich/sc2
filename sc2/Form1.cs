@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -275,6 +276,39 @@ namespace sc2
 
         private void test4ToolStripMenuItem_Click(object sender, EventArgs e)
         {
+        }
+
+        private void loadGameStateToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tvGameState.Nodes.Clear();
+            String[] files = Directory.GetFiles(@".\gameState");
+            foreach(String file in files)
+            {
+                FileInfo f = new FileInfo(file);
+                Console.WriteLine(f.Name);
+                TreeNode tn = new TreeNode(f.Name);
+                tn.Tag = f;
+                tvGameState.Nodes.Add(tn);
+            }
+        }
+
+        private void tvGameState_Click(object sender, EventArgs e)
+        {
+        }
+
+        private void tvGameState_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            TreeView tv = (TreeView)(sender);
+            LoadGameState(((FileInfo)tv.SelectedNode.Tag).FullName);
+
+        }
+        public void LoadGameState(String fileName)
+        {
+            Stream s = new FileStream(fileName, FileMode.Open);
+            SC2GameState gs = new SC2GameState(s);
+            s.Flush();
+            s.Close();
+            Console.WriteLine(gs.ToString());
         }
     }
 

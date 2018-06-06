@@ -276,8 +276,12 @@ namespace sc2
                     DumpUnits();
                     //DumpImage();
                 }
-                String output = JsonConvert.SerializeObject(this);
-                File.WriteAllText(String.Format(@"gameState/{0}.json", gameLoop), output);
+                Stream s = new FileStream(String.Format(@"gameState/{0:00000}.json",gameLoop), FileMode.Create);
+                gameState.WriteTo(s);
+                s.Flush();
+                s.Close();
+                //String output = JsonConvert.SerializeObject(this.gameState, Formatting.Indented);
+                //File.WriteAllText(String.Format(@"gameState/{0:00000}.json", gameLoop), output);
             }
             //
             if (commandQueue.Count > 0)

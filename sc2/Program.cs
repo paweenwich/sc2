@@ -1,20 +1,24 @@
 ﻿using Google.Protobuf.Collections;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SC2APIProtocol;
 using Starcraft2;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace sc2
 {
+
     public class SC2GameState
     {
         public ResponseObservation NewObservation;
         public ResponseGameInfo GameInfo;
-        public List<SC2APIProtocol.Action> LastActions;
         public ResponseObservation LastObservation;
+        public List<SC2APIProtocol.Action> LastActions;
         private SC2GameState()
         {
 
@@ -29,6 +33,40 @@ namespace sc2
                 LastObservation = gameState.LastObservation.Value;
             }
         }
+        public SC2GameState(Stream s)
+        {
+            BinaryReader bw = new BinaryReader(s);
+            NewObservation = new ResponseObservation();
+            NewObservation.Load(bw);
+            GameInfo = new ResponseGameInfo();
+            GameInfo.Load(bw);
+            LastObservation = new ResponseObservation();
+            LastObservation.Load(bw);
+            int num = bw.ReadInt32();
+            LastActions = new List<SC2APIProtocol.Action>();
+            for(int i=0;i<num;i++)
+            {
+                SC2APIProtocol.Action a = new SC2APIProtocol.Action();
+                a.Load(bw);
+                LastActions.Add(a);
+            }
+        }
+        public void WriteTo(Stream s)
+        {
+            BinaryWriter bw = new BinaryWriter(s);
+            NewObservation.Save(bw);
+            GameInfo.Save(bw);
+            LastObservation.Save(bw);
+            bw.Write(LastActions.Count);
+            foreach(SC2APIProtocol.Action a in LastActions)
+            {
+                a.Save(bw);
+            }
+        }
+        /*public override String ToString()
+        {
+            return JsonConvert.SerializeObject(this, Formatting.Indented);
+        }*/
     }
 
 
@@ -72,7 +110,7 @@ namespace sc2
             var gameSettings =
                 Sc2Game.GameSettings.OfUserSettings(userSettings)
                 .WithMap(@"Simple64.SC2Map")
-                //.WithRealtime(true)
+                .WithRealtime(true)
                 //.WithStepsize(10)
                 ;
             //.WithRealtime(true);

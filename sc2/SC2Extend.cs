@@ -68,19 +68,46 @@ namespace sc2
             }
         }
 
+        public static void Save(this IMessage self, BinaryWriter s)
+        {
+            byte[] ret = self.ToByteArray();
+            s.Write(ret.Length);
+            s.Write(ret);
+        }
+
         public static void Save(this IMessage self, String filePath)
+        {
+            byte[] ret = self.ToByteArray();
+            File.WriteAllBytes(filePath, ret);
+        }
+        public static byte[] ToByteArray(this IMessage self, String filePath)
         {
             byte[] ret = new byte[self.CalculateSize()];
             Google.Protobuf.CodedOutputStream os = new Google.Protobuf.CodedOutputStream(ret);
             self.WriteTo(os);
-            File.WriteAllBytes(filePath, ret);
+            return ret;
         }
+
+        public static void Load(this IMessage self, BinaryReader s)
+        {
+            int num = s.ReadInt32();
+            byte[] data = s.ReadBytes(num);
+            self.FromByteArray(data);
+        }
+
+
         public static void Load(this IMessage self, String filePath)
         {
             byte[] ret = File.ReadAllBytes(filePath);
+            self.FromByteArray(ret);
+        }
+
+        public static void FromByteArray(this IMessage self,byte[] ret)
+        {
             Google.Protobuf.CodedInputStream ins = new Google.Protobuf.CodedInputStream(ret);
             self.MergeFrom(ins);
         }
+
 
         public static void Empty(this System.IO.DirectoryInfo directory)
         {
