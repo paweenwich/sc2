@@ -322,6 +322,16 @@ namespace sc2
             picScreenScale *= 1.5f;
             if(picScreenScale> 100)
             {
+                picScreenScale = 100;
+            }
+            RefreshPicScreen();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            picScreenScale /= 1.5f;
+            if (picScreenScale < 10)
+            {
                 picScreenScale = 10;
             }
             RefreshPicScreen();
