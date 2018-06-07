@@ -11,8 +11,25 @@ using System.Threading.Tasks;
 
 namespace sc2
 {
+    public class ToDebugBitmapOption
+    {
+        public bool flgDrawGridPos = true;
+        public bool flgDrawGrid = true;
+        public bool flgDrawValue = true;
+        public bool flgColor = false;
+    }
+
     public static class SC2ExtendImageData
     {
+        public static Pen penRed = new Pen(System.Drawing.Color.Red, 2);
+        public static Pen penGreen = new Pen(System.Drawing.Color.Green, 2);
+        public static Pen penBlue = new Pen(System.Drawing.Color.Blue, 2);
+        public static Pen penWhite = new Pen(System.Drawing.Color.White, 2);
+        public static Pen penYellow = new Pen(System.Drawing.Color.Yellow, 2);
+        public static Pen penBlack = new Pen(System.Drawing.Color.Black, 2);
+        public static Pen penOrange = new Pen(System.Drawing.Color.Orange, 2);
+        public static Pen penViolet = new Pen(System.Drawing.Color.Violet, 2);
+
         public static Bitmap ByteArrayToBitmap(byte[] data, int width, int height)
         {
             Bitmap bmp = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
@@ -27,8 +44,9 @@ namespace sc2
             return ByteArrayToBitmap(imgData.Data.ToByteArray(), imgData.Size.X, imgData.Size.Y);
         }
 
-        public static Bitmap ToDebugBitmap(this ImageData imgData, float scale = 50.0f, bool flgColor = false)
+        public static Bitmap ToDebugBitmap(this ImageData imgData, float scale = 50.0f, List<Unit> units = null,ToDebugBitmapOption options = null)
         {
+            if (options == null) options = new ToDebugBitmapOption();
             Font drawFont = new Font("Arial", 10);
             SolidBrush drawBrush = new SolidBrush(System.Drawing.Color.Yellow);
             SolidBrush drawBrush2 = new SolidBrush(System.Drawing.Color.White);
@@ -41,7 +59,7 @@ namespace sc2
                 for (int y = 0; y < imgData.Size.Y; y++)
                 {
                     byte value = imgData.GetValue(x, y);
-                    if (flgColor)
+                    if (options.flgColor)
                     {
                         System.Drawing.Color color = System.Drawing.Color.FromArgb(value, value, value);
                         switch (value)
@@ -54,27 +72,53 @@ namespace sc2
                             case 141: color = System.Drawing.Color.Lime; break;
                             case 140: color = System.Drawing.Color.Cyan; break;
                         }
-                        g.FillRectangle(new SolidBrush(color), new Rectangle((int)(x * scale), (int)(y * scale), (int)scale, (int)scale));
+                        g.FillRectangle(new SolidBrush(color), new Rectangle((int)Math.Round(x * scale), (int)Math.Round(y * scale), (int)Math.Round(scale), (int)Math.Round(scale)));
                     }
-                    g.DrawString("" + value, drawFont, drawBrush2, new PointF((float)(x) * scale, (float)(y+0.5) * scale));
-                    g.DrawString(String.Format("{0},{1}",x, imgData.Size.Y - y), drawFont, drawBrush, new PointF((float)(x) * scale, (float)(y) * scale));
+                    if (options.flgDrawValue)
+                    {
+                        g.DrawString("" + value, drawFont, drawBrush2, new PointF((float)(x) * scale, (float)(y + 0.5) * scale));
+                    }
+                    if (options.flgDrawGridPos)
+                    {
+                        g.DrawString(String.Format("{0},{1}", x, imgData.Size.Y - y), drawFont, drawBrush, new PointF((float)(x) * scale, (float)(y) * scale));
+                    }
 
                 }
             }
-            for (int x = 0; x < imgData.Size.X; x++)
+            if (options.flgDrawGrid)
             {
-                int px = (int)(x * scale);
-                g.DrawLine(pen, px, 0, px, bv.Height);
+                for (int x = 0; x < imgData.Size.X; x++)
+                {
+                    int px = (int)(x * scale);
+                    g.DrawLine(pen, px, 0, px, bv.Height);
+                }
+                for (int y = 0; y < imgData.Size.Y; y++)
+                {
+                    int py = (int)(y * scale);
+                    g.DrawLine(pen, 0, py, bv.Width, py);
+                }
             }
-            for (int y = 0; y < imgData.Size.Y; y++)
-            {
-                int py = (int)(y * scale);
-                g.DrawLine(pen, 0, py, bv.Width, py);
+            if (units != null) {
+                DrawUnits(g, imgData.Size.Y, scale, units);
             }
-
             g.Save();
             g.Dispose();
             return bv;
+        }
+
+        public static void DrawUnits(Graphics g, int gameY, float scale, List<Unit> units )
+        {
+            foreach (Unit u in units)
+            {
+                Pen pen = penWhite;
+                switch (u.Alliance)
+                {
+                    case Alliance.Enemy: pen = penRed; break;
+                    case Alliance.Neutral: pen = penGreen; break;
+                    case Alliance.Self: pen = penBlue; break;
+                }
+                g.DrawCircle(pen, u.Pos.X * scale, (gameY - u.Pos.Y) * scale, u.Radius * scale);
+            }
         }
 
         //x,y = data,bitmap cordinate

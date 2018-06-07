@@ -33,6 +33,7 @@
             this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sendCommandToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveStateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadGameStateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuOption = new System.Windows.Forms.ToolStripMenuItem();
             this.debugToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -42,12 +43,15 @@
             this.txtInput = new System.Windows.Forms.TextBox();
             this.tabMain = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.pnlView = new System.Windows.Forms.Panel();
-            this.loadGameStateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.tvGameState = new System.Windows.Forms.TreeView();
+            this.pnlView = new sc2.SelectablePanel();
+            this.button1 = new System.Windows.Forms.Button();
+            this.picScreen = new System.Windows.Forms.PictureBox();
             this.menuStrip1.SuspendLayout();
             this.tabMain.SuspendLayout();
             this.tabPage1.SuspendLayout();
+            this.pnlView.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picScreen)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -94,6 +98,13 @@
             this.saveStateToolStripMenuItem.Size = new System.Drawing.Size(194, 26);
             this.saveStateToolStripMenuItem.Text = "Save State";
             this.saveStateToolStripMenuItem.Click += new System.EventHandler(this.saveStateToolStripMenuItem_Click);
+            // 
+            // loadGameStateToolStripMenuItem
+            // 
+            this.loadGameStateToolStripMenuItem.Name = "loadGameStateToolStripMenuItem";
+            this.loadGameStateToolStripMenuItem.Size = new System.Drawing.Size(194, 26);
+            this.loadGameStateToolStripMenuItem.Text = "Load GameState";
+            this.loadGameStateToolStripMenuItem.Click += new System.EventHandler(this.loadGameStateToolStripMenuItem_Click);
             // 
             // mnuOption
             // 
@@ -173,21 +184,6 @@
             this.tabPage1.Text = "Step File";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // pnlView
-            // 
-            this.pnlView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlView.Location = new System.Drawing.Point(194, 3);
-            this.pnlView.Name = "pnlView";
-            this.pnlView.Size = new System.Drawing.Size(638, 405);
-            this.pnlView.TabIndex = 2;
-            // 
-            // loadGameStateToolStripMenuItem
-            // 
-            this.loadGameStateToolStripMenuItem.Name = "loadGameStateToolStripMenuItem";
-            this.loadGameStateToolStripMenuItem.Size = new System.Drawing.Size(194, 26);
-            this.loadGameStateToolStripMenuItem.Text = "Load GameState";
-            this.loadGameStateToolStripMenuItem.Click += new System.EventHandler(this.loadGameStateToolStripMenuItem_Click);
-            // 
             // tvGameState
             // 
             this.tvGameState.Dock = System.Windows.Forms.DockStyle.Left;
@@ -197,6 +193,37 @@
             this.tvGameState.TabIndex = 3;
             this.tvGameState.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvGameState_AfterSelect);
             this.tvGameState.Click += new System.EventHandler(this.tvGameState_Click);
+            // 
+            // pnlView
+            // 
+            this.pnlView.AutoScroll = true;
+            this.pnlView.Controls.Add(this.button1);
+            this.pnlView.Controls.Add(this.picScreen);
+            this.pnlView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.pnlView.Location = new System.Drawing.Point(194, 3);
+            this.pnlView.Name = "pnlView";
+            this.pnlView.Size = new System.Drawing.Size(638, 405);
+            this.pnlView.TabIndex = 2;
+            this.pnlView.TabStop = true;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(6, 0);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(38, 30);
+            this.button1.TabIndex = 2;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // picScreen
+            // 
+            this.picScreen.Location = new System.Drawing.Point(6, 36);
+            this.picScreen.Name = "picScreen";
+            this.picScreen.Size = new System.Drawing.Size(300, 352);
+            this.picScreen.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
+            this.picScreen.TabIndex = 1;
+            this.picScreen.TabStop = false;
             // 
             // Form1
             // 
@@ -213,6 +240,9 @@
             this.menuStrip1.PerformLayout();
             this.tabMain.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
+            this.pnlView.ResumeLayout(false);
+            this.pnlView.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picScreen)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -234,9 +264,11 @@
         private System.Windows.Forms.ToolStripMenuItem test4ToolStripMenuItem;
         private System.Windows.Forms.TabControl tabMain;
         private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.Panel pnlView;
         private System.Windows.Forms.ToolStripMenuItem loadGameStateToolStripMenuItem;
         private System.Windows.Forms.TreeView tvGameState;
+        private System.Windows.Forms.PictureBox picScreen;
+        private System.Windows.Forms.Button button1;
+        private SelectablePanel pnlView;
     }
 }
 

@@ -33,7 +33,15 @@ namespace sc2
                 LastObservation = gameState.LastObservation.Value;
             }
         }
-        public SC2GameState(Stream s)
+        public SC2GameState(String fileName)
+        {
+            Stream s = new FileStream(fileName, FileMode.Open);
+            LoadFrom(s);
+            s.Flush();
+            s.Close();
+        }
+
+        public void LoadFrom(Stream s)
         {
             BinaryReader bw = new BinaryReader(s);
             NewObservation = new ResponseObservation();

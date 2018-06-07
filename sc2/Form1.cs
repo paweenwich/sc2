@@ -22,6 +22,7 @@ namespace sc2
         public Form1()
         {
             InitializeComponent();
+            ListGameStates();
         }
 
         private void runToolStripMenuItem_Click(object sender, EventArgs e)
@@ -94,7 +95,7 @@ namespace sc2
             ImageData placeMap = new ImageData();
             placeMap.Load(@"PlacementGrid.bin");
             float scale = 50f;
-            Bitmap bmp = placeMap.ToDebugBitmap(scale, true);
+            Bitmap bmp = placeMap.ToDebugBitmap(scale, null, new ToDebugBitmapOption {flgColor = true});
             Graphics g = Graphics.FromImage(bmp);
             foreach (Point2D p in points)
             {
@@ -141,19 +142,6 @@ namespace sc2
         public static Pen penOrange = new Pen(System.Drawing.Color.Orange, 5);
         public static Pen penViolet = new Pen(System.Drawing.Color.Violet, 5);
 
-/*        public byte[][] block2x2 = new byte[][]
-        {
-            new byte[] {1,1},
-            new byte[] {1,1},
-        };
-        public byte[][] blockBarrak = new byte[][]
-        {
-            new byte[] {1,1,1,0,0},
-            new byte[] {1,1,1,1,1},
-            new byte[] {1,1,1,1,1},
-        };
-        */
-
         private void test3ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ResponseObservation obs = new ResponseObservation();
@@ -166,7 +154,7 @@ namespace sc2
             placeMap.Load(@"PlacementGrid.bin");
             placeMap = SC2Bot.CreatePlaceableImageData(placeMap, allUnits);
             float scale = 50f;
-            Bitmap bmp = placeMap.ToDebugBitmap(scale, true);
+            Bitmap bmp = placeMap.ToDebugBitmap(scale, null, new ToDebugBitmapOption { flgColor = true });
             Graphics g = Graphics.FromImage(bmp);
             Unit cc = null;
             
@@ -280,16 +268,7 @@ namespace sc2
 
         private void loadGameStateToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            tvGameState.Nodes.Clear();
-            String[] files = Directory.GetFiles(@".\gameState");
-            foreach(String file in files)
-            {
-                FileInfo f = new FileInfo(file);
-                Console.WriteLine(f.Name);
-                TreeNode tn = new TreeNode(f.Name);
-                tn.Tag = f;
-                tvGameState.Nodes.Add(tn);
-            }
+            ListGameStates();
         }
 
         private void tvGameState_Click(object sender, EventArgs e)
@@ -302,13 +281,50 @@ namespace sc2
             LoadGameState(((FileInfo)tv.SelectedNode.Tag).FullName);
 
         }
+        public void ListGameStates()
+        {
+            tvGameState.Nodes.Clear();
+            String[] files = Directory.GetFiles(@".\gameState");
+            foreach (String file in files)
+            {
+                FileInfo f = new FileInfo(file);
+                Console.WriteLine(f.Name);
+                TreeNode tn = new TreeNode(f.Name);
+                tn.Tag = f;
+                tvGameState.Nodes.Add(tn);
+            }
+        }
+        public float picScreenScale = 10f;
+        public SC2GameState currentGameState;
         public void LoadGameState(String fileName)
         {
-            Stream s = new FileStream(fileName, FileMode.Open);
-            SC2GameState gs = new SC2GameState(s);
-            s.Flush();
-            s.Close();
-            Console.WriteLine(gs.ToString());
+            currentGameState = new SC2GameState(fileName);
+            RefreshPicScreen();
+        }
+
+        public void RefreshPicScreen()
+        {
+            SC2GameState gs = currentGameState;
+            Bitmap bmpHeight = gs.GameInfo.StartRaw.TerrainHeight.ToDebugBitmap(
+                picScreenScale, gs.NewObservation.Observation.RawData.Units.ToList(), new ToDebugBitmapOption
+                {
+                    flgDrawGrid = false,
+                    flgDrawGridPos = false,
+                    flgDrawValue = false,
+                    flgColor = true
+                }
+            );
+            picScreen.Image = bmpHeight;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            picScreenScale *= 1.5f;
+            if(picScreenScale> 100)
+            {
+                picScreenScale = 10;
+            }
+            RefreshPicScreen();
         }
     }
 
