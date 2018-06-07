@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.starCraftToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -35,23 +36,23 @@
             this.saveStateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadGameStateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuOption = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewOptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDrawGrid = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDrawPosition = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDrawValue = new System.Windows.Forms.ToolStripMenuItem();
             this.debugToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test3ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test4ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.viewOptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.chkDrawGrid = new System.Windows.Forms.ToolStripMenuItem();
-            this.chkDrawPosition = new System.Windows.Forms.ToolStripMenuItem();
-            this.chkDrawValue = new System.Windows.Forms.ToolStripMenuItem();
             this.txtInput = new System.Windows.Forms.TextBox();
             this.tabMain = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tvGameState = new System.Windows.Forms.TreeView();
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
-            this.pnlView = new sc2.SelectablePanel();
+            this.pnlView = new System.Windows.Forms.Panel();
             this.picScreen = new System.Windows.Forms.PictureBox();
+            this.tvGameState = new System.Windows.Forms.TreeView();
             this.menuStrip1.SuspendLayout();
             this.tabMain.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -118,6 +119,40 @@
             this.mnuOption.Size = new System.Drawing.Size(67, 24);
             this.mnuOption.Text = "Option";
             // 
+            // viewOptionToolStripMenuItem
+            // 
+            this.viewOptionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.chkDrawGrid,
+            this.chkDrawPosition,
+            this.chkDrawValue});
+            this.viewOptionToolStripMenuItem.Name = "viewOptionToolStripMenuItem";
+            this.viewOptionToolStripMenuItem.Size = new System.Drawing.Size(99, 24);
+            this.viewOptionToolStripMenuItem.Text = "ViewOption";
+            // 
+            // chkDrawGrid
+            // 
+            this.chkDrawGrid.CheckOnClick = true;
+            this.chkDrawGrid.Name = "chkDrawGrid";
+            this.chkDrawGrid.Size = new System.Drawing.Size(176, 26);
+            this.chkDrawGrid.Text = "Draw Grid";
+            this.chkDrawGrid.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
+            // 
+            // chkDrawPosition
+            // 
+            this.chkDrawPosition.CheckOnClick = true;
+            this.chkDrawPosition.Name = "chkDrawPosition";
+            this.chkDrawPosition.Size = new System.Drawing.Size(176, 26);
+            this.chkDrawPosition.Text = "Draw Position";
+            this.chkDrawPosition.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
+            // 
+            // chkDrawValue
+            // 
+            this.chkDrawValue.CheckOnClick = true;
+            this.chkDrawValue.Name = "chkDrawValue";
+            this.chkDrawValue.Size = new System.Drawing.Size(176, 26);
+            this.chkDrawValue.Text = "Draw Value";
+            this.chkDrawValue.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
+            // 
             // debugToolStripMenuItem
             // 
             this.debugToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -157,40 +192,6 @@
             this.test4ToolStripMenuItem.Text = "Test4";
             this.test4ToolStripMenuItem.Click += new System.EventHandler(this.test4ToolStripMenuItem_Click);
             // 
-            // viewOptionToolStripMenuItem
-            // 
-            this.viewOptionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.chkDrawGrid,
-            this.chkDrawPosition,
-            this.chkDrawValue});
-            this.viewOptionToolStripMenuItem.Name = "viewOptionToolStripMenuItem";
-            this.viewOptionToolStripMenuItem.Size = new System.Drawing.Size(99, 24);
-            this.viewOptionToolStripMenuItem.Text = "ViewOption";
-            // 
-            // chkDrawGrid
-            // 
-            this.chkDrawGrid.CheckOnClick = true;
-            this.chkDrawGrid.Name = "chkDrawGrid";
-            this.chkDrawGrid.Size = new System.Drawing.Size(176, 26);
-            this.chkDrawGrid.Text = "Draw Grid";
-            this.chkDrawGrid.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
-            // 
-            // chkDrawPosition
-            // 
-            this.chkDrawPosition.CheckOnClick = true;
-            this.chkDrawPosition.Name = "chkDrawPosition";
-            this.chkDrawPosition.Size = new System.Drawing.Size(176, 26);
-            this.chkDrawPosition.Text = "Draw Position";
-            this.chkDrawPosition.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
-            // 
-            // chkDrawValue
-            // 
-            this.chkDrawValue.CheckOnClick = true;
-            this.chkDrawValue.Name = "chkDrawValue";
-            this.chkDrawValue.Size = new System.Drawing.Size(176, 26);
-            this.chkDrawValue.Text = "Draw Value";
-            this.chkDrawValue.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
-            // 
             // txtInput
             // 
             this.txtInput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -226,19 +227,9 @@
             this.tabPage1.Text = "Step File";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // tvGameState
-            // 
-            this.tvGameState.Dock = System.Windows.Forms.DockStyle.Left;
-            this.tvGameState.Location = new System.Drawing.Point(3, 3);
-            this.tvGameState.Name = "tvGameState";
-            this.tvGameState.Size = new System.Drawing.Size(191, 405);
-            this.tvGameState.TabIndex = 3;
-            this.tvGameState.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvGameState_AfterSelect);
-            this.tvGameState.Click += new System.EventHandler(this.tvGameState_Click);
-            // 
             // button2
             // 
-            this.button2.Image = global::sc2.Properties.Resources.ZoomOut_32x;
+            this.button2.Image = ((System.Drawing.Image)(resources.GetObject("button2.Image")));
             this.button2.Location = new System.Drawing.Point(236, 3);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(37, 35);
@@ -249,7 +240,7 @@
             // 
             // button1
             // 
-            this.button1.Image = global::sc2.Properties.Resources.ZoomIn_32x;
+            this.button1.Image = ((System.Drawing.Image)(resources.GetObject("button1.Image")));
             this.button1.Location = new System.Drawing.Point(200, 3);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(39, 35);
@@ -271,12 +262,23 @@
             // 
             // picScreen
             // 
-            this.picScreen.Location = new System.Drawing.Point(6, 36);
+            this.picScreen.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.picScreen.Location = new System.Drawing.Point(0, 0);
             this.picScreen.Name = "picScreen";
-            this.picScreen.Size = new System.Drawing.Size(300, 352);
+            this.picScreen.Size = new System.Drawing.Size(638, 405);
             this.picScreen.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.picScreen.TabIndex = 1;
             this.picScreen.TabStop = false;
+            // 
+            // tvGameState
+            // 
+            this.tvGameState.Dock = System.Windows.Forms.DockStyle.Left;
+            this.tvGameState.Location = new System.Drawing.Point(3, 3);
+            this.tvGameState.Name = "tvGameState";
+            this.tvGameState.Size = new System.Drawing.Size(191, 405);
+            this.tvGameState.TabIndex = 3;
+            this.tvGameState.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvGameState_AfterSelect);
+            this.tvGameState.Click += new System.EventHandler(this.tvGameState_Click);
             // 
             // Form1
             // 
@@ -320,7 +322,7 @@
         private System.Windows.Forms.ToolStripMenuItem loadGameStateToolStripMenuItem;
         private System.Windows.Forms.TreeView tvGameState;
         private System.Windows.Forms.PictureBox picScreen;
-        private SelectablePanel pnlView;
+        private System.Windows.Forms.Panel pnlView;
         private System.Windows.Forms.ToolStripMenuItem viewOptionToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem chkDrawGrid;
         private System.Windows.Forms.ToolStripMenuItem chkDrawPosition;

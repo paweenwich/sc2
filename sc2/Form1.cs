@@ -223,6 +223,7 @@ namespace sc2
             }
 
             picScreen.Image = bmpHeight;
+            bmpHeight.Save("test.png");
         }
 
         private void button1_Click(object sender, EventArgs e)

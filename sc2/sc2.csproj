@@ -136,16 +136,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Zoom_16x.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\i_zoom-inBlue_F12.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ZoomOut_32x.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ZoomIn_32x.png" />
+    <Folder Include="Resources\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Accord.3.8.0\build\Accord.targets" Condition="Exists('..\packages\Accord.3.8.0\build\Accord.targets')" />
