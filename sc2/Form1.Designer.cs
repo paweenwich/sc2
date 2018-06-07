@@ -40,14 +40,18 @@
             this.test2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test3ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test4ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewOptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDrawGrid = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDrawPosition = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDrawValue = new System.Windows.Forms.ToolStripMenuItem();
             this.txtInput = new System.Windows.Forms.TextBox();
             this.tabMain = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tvGameState = new System.Windows.Forms.TreeView();
-            this.pnlView = new sc2.SelectablePanel();
-            this.button1 = new System.Windows.Forms.Button();
-            this.picScreen = new System.Windows.Forms.PictureBox();
             this.button2 = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.pnlView = new sc2.SelectablePanel();
+            this.picScreen = new System.Windows.Forms.PictureBox();
             this.menuStrip1.SuspendLayout();
             this.tabMain.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -61,6 +65,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.starCraftToolStripMenuItem,
             this.mnuOption,
+            this.viewOptionToolStripMenuItem,
             this.debugToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
@@ -152,6 +157,40 @@
             this.test4ToolStripMenuItem.Text = "Test4";
             this.test4ToolStripMenuItem.Click += new System.EventHandler(this.test4ToolStripMenuItem_Click);
             // 
+            // viewOptionToolStripMenuItem
+            // 
+            this.viewOptionToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.chkDrawGrid,
+            this.chkDrawPosition,
+            this.chkDrawValue});
+            this.viewOptionToolStripMenuItem.Name = "viewOptionToolStripMenuItem";
+            this.viewOptionToolStripMenuItem.Size = new System.Drawing.Size(99, 24);
+            this.viewOptionToolStripMenuItem.Text = "ViewOption";
+            // 
+            // chkDrawGrid
+            // 
+            this.chkDrawGrid.CheckOnClick = true;
+            this.chkDrawGrid.Name = "chkDrawGrid";
+            this.chkDrawGrid.Size = new System.Drawing.Size(176, 26);
+            this.chkDrawGrid.Text = "Draw Grid";
+            this.chkDrawGrid.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
+            // 
+            // chkDrawPosition
+            // 
+            this.chkDrawPosition.CheckOnClick = true;
+            this.chkDrawPosition.Name = "chkDrawPosition";
+            this.chkDrawPosition.Size = new System.Drawing.Size(176, 26);
+            this.chkDrawPosition.Text = "Draw Position";
+            this.chkDrawPosition.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
+            // 
+            // chkDrawValue
+            // 
+            this.chkDrawValue.CheckOnClick = true;
+            this.chkDrawValue.Name = "chkDrawValue";
+            this.chkDrawValue.Size = new System.Drawing.Size(176, 26);
+            this.chkDrawValue.Text = "Draw Value";
+            this.chkDrawValue.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
+            // 
             // txtInput
             // 
             this.txtInput.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -175,6 +214,8 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.button2);
+            this.tabPage1.Controls.Add(this.button1);
             this.tabPage1.Controls.Add(this.pnlView);
             this.tabPage1.Controls.Add(this.tvGameState);
             this.tabPage1.Location = new System.Drawing.Point(4, 25);
@@ -195,11 +236,31 @@
             this.tvGameState.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvGameState_AfterSelect);
             this.tvGameState.Click += new System.EventHandler(this.tvGameState_Click);
             // 
+            // button2
+            // 
+            this.button2.Image = global::sc2.Properties.Resources.ZoomOut_32x;
+            this.button2.Location = new System.Drawing.Point(236, 3);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(37, 35);
+            this.button2.TabIndex = 5;
+            this.button2.TabStop = false;
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // button1
+            // 
+            this.button1.Image = global::sc2.Properties.Resources.ZoomIn_32x;
+            this.button1.Location = new System.Drawing.Point(200, 3);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(39, 35);
+            this.button1.TabIndex = 4;
+            this.button1.TabStop = false;
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // pnlView
             // 
             this.pnlView.AutoScroll = true;
-            this.pnlView.Controls.Add(this.button2);
-            this.pnlView.Controls.Add(this.button1);
             this.pnlView.Controls.Add(this.picScreen);
             this.pnlView.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlView.Location = new System.Drawing.Point(194, 3);
@@ -207,16 +268,6 @@
             this.pnlView.Size = new System.Drawing.Size(638, 405);
             this.pnlView.TabIndex = 2;
             this.pnlView.TabStop = true;
-            // 
-            // button1
-            // 
-            this.button1.Image = global::sc2.Properties.Resources.ZoomIn_32x;
-            this.button1.Location = new System.Drawing.Point(3, 0);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(39, 35);
-            this.button1.TabIndex = 2;
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // picScreen
             // 
@@ -226,16 +277,6 @@
             this.picScreen.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.picScreen.TabIndex = 1;
             this.picScreen.TabStop = false;
-            // 
-            // button2
-            // 
-            this.button2.Image = global::sc2.Properties.Resources.ZoomOut_32x;
-            this.button2.Location = new System.Drawing.Point(39, 0);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(37, 35);
-            this.button2.TabIndex = 3;
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
             // 
             // Form1
             // 
@@ -279,9 +320,13 @@
         private System.Windows.Forms.ToolStripMenuItem loadGameStateToolStripMenuItem;
         private System.Windows.Forms.TreeView tvGameState;
         private System.Windows.Forms.PictureBox picScreen;
-        private System.Windows.Forms.Button button1;
         private SelectablePanel pnlView;
+        private System.Windows.Forms.ToolStripMenuItem viewOptionToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem chkDrawGrid;
+        private System.Windows.Forms.ToolStripMenuItem chkDrawPosition;
+        private System.Windows.Forms.ToolStripMenuItem chkDrawValue;
         private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button1;
     }
 }
 

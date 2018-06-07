@@ -52,6 +52,17 @@ namespace sc2
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
 
+        public static float Dist(this System.Drawing.Point p1, System.Drawing.Point p2)
+        {
+            return p1.Dist(p2.X, p2.Y);
+        }
+
+        public static float Dist(this System.Drawing.Point p1, float x, float y)
+        {
+            float dx = p1.X - x;
+            float dy = p1.Y - y;
+            return (float)Math.Sqrt(dx * dx + dy * dy);
+        }
 
         public static bool HasCommand(this SC2APIProtocol.Action self)
         {
@@ -115,7 +126,7 @@ namespace sc2
             foreach (System.IO.DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
         }
 
-
+        
     }
 
 }

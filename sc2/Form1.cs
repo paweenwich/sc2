@@ -57,20 +57,6 @@ namespace sc2
 
         private void sendCommandToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            /*String[] input = txtInput.Text.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            if(input.Length == 2)
-            {
-                float v1 = (float)Double.Parse(input[0]);
-                float v2 = (float)Double.Parse(input[1]);
-                Console.WriteLine(String.Format("{0} {1}", v1, v2));
-                SC2Command cmd = new SC2Command();
-                cmd.type = SC2CommandType.BUILD_BARRAK;
-                cmd.targetPos = new Point2D();
-                cmd.targetPos.X = v1;
-                cmd.targetPos.Y = v2;
-                Program.bot.SendCommand(cmd);
-                Console.WriteLine(cmd.ToString());
-            }*/
             SC2Command cmd = new SC2Command();
             cmd.type = SC2CommandType.MORPH_ORBITAL;
             Program.bot.SendCommand(cmd);
@@ -101,7 +87,7 @@ namespace sc2
             {
                 //Console.WriteLine(p.ToString());
                 //g.DrawRectangle(penViolet, new Rectangle((int)(p.X * scale), bmp.Height - (int)(p.Y * scale), (int)(5 * scale), (int)(3 * scale)));
-                g.DrawCircle(penViolet, p.X * scale, bmp.Height - (p.Y * scale), 3 * scale);
+                g.DrawCircle(SC2ExtendImageData.penViolet, p.X * scale, bmp.Height - (p.Y * scale), 3 * scale);
             }
 
             g.Save();
@@ -133,121 +119,18 @@ namespace sc2
             KMeansClusterCollection clusters  = kmeans.Learn(data);
             
         }
-        public static Pen penRed = new Pen(System.Drawing.Color.Red, 5);
-        public static Pen penGreen = new Pen(System.Drawing.Color.Green, 5);
-        public static Pen penBlue = new Pen(System.Drawing.Color.Blue, 5);
-        public static Pen penWhite = new Pen(System.Drawing.Color.White, 5);
-        public static Pen penYellow = new Pen(System.Drawing.Color.Yellow, 5);
-        public static Pen penBlack = new Pen(System.Drawing.Color.Black, 5);
-        public static Pen penOrange = new Pen(System.Drawing.Color.Orange, 5);
-        public static Pen penViolet = new Pen(System.Drawing.Color.Violet, 5);
 
         private void test3ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ResponseObservation obs = new ResponseObservation();
-            obs.Load(@"NewObservation.bin");
+            SC2Bot bot = new TerranBot();
+            bot.SetBoolProperty("Log", true);
+            bot.Update(currentGameState);
+            if (bot.enemyUnit.all.Count() > 0)
+            {
 
-            List<Unit> allUnits = obs.Observation.RawData.Units.ToList();
-            ImageData heightMap = new ImageData();
-            heightMap.Load(@"TerrainHeight.bin");
-            ImageData placeMap = new ImageData();
-            placeMap.Load(@"PlacementGrid.bin");
-            placeMap = SC2Bot.CreatePlaceableImageData(placeMap, allUnits);
-            float scale = 50f;
-            Bitmap bmp = placeMap.ToDebugBitmap(scale, null, new ToDebugBitmapOption { flgColor = true });
-            Graphics g = Graphics.FromImage(bmp);
-            Unit cc = null;
-            
-            foreach (Unit u in allUnits)
-            {
-                //Console.WriteLine("Checking " + ((UNIT_TYPEID)u.UnitType).ToString());
-                if(u.UnitType == (int)UNIT_TYPEID.TERRAN_COMMANDCENTER)
-                {
-                    cc = u;
-                }
-/*                Pen pen = penWhite;
-                switch (u.Alliance)
-                {
-                    case Alliance.Enemy: pen = penRed; break;
-                    case Alliance.Neutral: pen = penGreen; break;
-                    case Alliance.Self: pen = penBlue; break;
-                }
-                if(isPlaceable(u, placeMap, allUnits)||(u.idealRedius()< 1)||(u.Alliance == Alliance.Neutral))
-                {
+            }
 
-                    g.DrawCircle(pen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
-                }
-                else
-                {
-                    Console.WriteLine("Overlap detect " + u.ToStringEx());
-                    g.DrawCircle(penOrange, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), u.Radius * scale);
-                }
-*/                
-            }
-            int r = 10;
-            Unit testUnit = SC2Bot.FakeBuildingUnit(UNIT_TYPEID.TERRAN_BARRACKS);
-            byte[][] pattern = testUnit.GetBlock();
-            bool flgSameLevel = true;
-            int ccHeight = heightMap.GetValue((int)(cc.Pos.X), heightMap.Size.Y - (int)(cc.Pos.Y));
-            for (int y = (int)(cc.Pos.Y - r); y < (int)(cc.Pos.Y + r); y++)
-            {
-                if ((y < 0) || (y > placeMap.Size.Y)) continue;
-                for (int x = (int)(cc.Pos.X - r); x < (int)(cc.Pos.X + r); x++)
-                {
-                    if ((x < 0) || (x > placeMap.Size.X)) continue;
-                    if(placeMap.IsPlaceable(x, y, pattern))
-                    {
-                        if( (x== 27) && (y == 56))
-                        {
-                            //Console.WriteLine(String.Format("{0} {1}", x, y));
-                        }
-                        if (flgSameLevel)
-                        {
-                            if(!heightMap.IsPlaceable(x,y,pattern, ccHeight))
-                            {
-                                continue;
-                            }
-                        }
-                        testUnit.SetPos(x + testUnit.idealRedius(), y - testUnit.idealRedius());
-                        if(!isPlaceable(testUnit, placeMap, allUnits))
-                        {
-                            continue;
-                        }
-                        int ny = y;
-                        g.DrawRectangle(penViolet, new Rectangle((int) (x*scale),bmp.Height - (int) (ny*scale), (int)(pattern[0].Length*scale),(int)(pattern.Length*scale)));
-                    }
-                }
-            }
-            g.Save();
-            g.Dispose();
-            bmp.Save(@"TerrainHeightWithUnit.png", ImageFormat.Png);
 
-        }
-        public bool isPlaceable(Unit u, ImageData placeMap, List<Unit> allUnits,byte[][] pattern = null)
-        {
-            if (pattern == null)
-            {
-                pattern = u.GetBlock();
-            }
-            float dx =(float) (pattern[0].Length / 2.0);
-            float dy =(float) (pattern.Length / 2.0);
-            float d = Math.Min(dx, dy);
-            if (placeMap.IsPlaceable((int)(u.Pos.X - d), (int)(u.Pos.Y + d), pattern))
-            {
-                if (pattern.Length == pattern[0].Length)
-                {
-                    if (u.OverlapWith(allUnits))
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    //Console.WriteLine(String.Format("Block {0}x{1} found", pattern[0].Length, pattern.Length));
-                }
-                return true;
-            }
-            return false;
         }
         private void saveStateToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -302,18 +185,43 @@ namespace sc2
             RefreshPicScreen();
         }
 
+        public void DrawUnit(Bitmap bmp, List<Unit> units, float scale)
+        {
+            Graphics g = Graphics.FromImage(bmp);
+            foreach (Unit u in units)
+            {
+                g.DrawLine(SC2ExtendImageData.penWhite,u.Pos.X * scale , bmp.Height - ((u.Pos.Y - u.Radius) * scale), u.Pos.X* scale,bmp.Height - ((u.Pos.Y + u.Radius) * scale));
+                g.DrawLine(SC2ExtendImageData.penWhite,(u.Pos.X -u.Radius) * scale, bmp.Height - (u.Pos.Y  * scale), (u.Pos.X + u.Radius) *scale, bmp.Height - (u.Pos.Y * scale));
+            }
+            g.Save();
+            g.Dispose();
+        }
+
         public void RefreshPicScreen()
         {
             SC2GameState gs = currentGameState;
             Bitmap bmpHeight = gs.GameInfo.StartRaw.TerrainHeight.ToDebugBitmap(
                 picScreenScale, gs.NewObservation.Observation.RawData.Units.ToList(), new ToDebugBitmapOption
                 {
-                    flgDrawGrid = false,
-                    flgDrawGridPos = false,
-                    flgDrawValue = false,
+                    flgDrawGrid = chkDrawGrid.Checked,
+                    flgDrawGridPos = chkDrawPosition.Checked,
+                    flgDrawValue = chkDrawValue.Checked,
                     flgColor = true
                 }
             );
+            TerranBot bot = new TerranBot();
+            //bot.SetBoolProperty("Log", true);
+            bot.SetVariable(currentGameState);
+            if (bot.enemyUnit.all.Count() > 0)
+            {
+                List<Unit> units = bot.enemyUnit.all.GetUnitInRange(bot.myUnit.armyUnit);
+                if (units.Count > 0)
+                {
+                    Console.WriteLine(units.ToString());
+                    DrawUnit(bmpHeight, units, picScreenScale);
+                }    
+            }
+
             picScreen.Image = bmpHeight;
         }
 
@@ -334,6 +242,11 @@ namespace sc2
             {
                 picScreenScale = 10;
             }
+            RefreshPicScreen();
+        }
+
+        private void drawGridToolStripMenuItem_Click(object sender, EventArgs e)
+        {
             RefreshPicScreen();
         }
     }

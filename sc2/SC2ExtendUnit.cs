@@ -203,5 +203,32 @@ namespace sc2
             return false;
         }
 
+        public static List<Unit> GetUnitInRange(this Unit self,List<Unit> units, float range = 12.0f)
+        {
+            List<Unit> unitOut = new List<Unit>();
+            foreach(Unit u in units)
+            {
+                if (u == self) continue;
+                if(self.Pos.Dist(u.Pos) <= range)
+                {
+                    unitOut.Add(u);
+                }
+            }
+            return unitOut;
+        }
+
+        public static List<Unit> GetUnitInRange(this List<Unit> self, List<Unit> units, float range = 12.0f)
+        {
+            HashSet<Unit> unitOut = new HashSet<Unit>();
+            foreach(Unit u in self)
+            {
+                foreach(Unit a in u.GetUnitInRange(units, range))
+                {
+                    unitOut.Add(a);
+                }
+            }
+            return unitOut.ToList();
+        }
+
     }
 }

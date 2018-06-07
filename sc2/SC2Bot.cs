@@ -228,7 +228,7 @@ namespace sc2
             DirectoryInfo dir = new DirectoryInfo("gameState");
             if (dir.Exists)
             {
-                dir.Empty();
+                //dir.Empty();
             }else
             {
                 dir.Create();
@@ -236,10 +236,9 @@ namespace sc2
             OnInit(gameState);
         }
 
-        public override SC2APIProtocol.Action Update(SC2GameState gameState)
+        public void SetVariable(SC2GameState gameState)
         {
 
-            SC2APIProtocol.Action answer = NewAction();
             this.gameState = gameState;
             this.newObservation = gameState.NewObservation;
             this.gameLoop = (int)newObservation.Observation.GameLoop;
@@ -248,7 +247,12 @@ namespace sc2
             this.enemyUnit = GetEnemyUnits();
             this.myUnit = GetMyUnits();
             this.baseLocations = allUnits.FindBaseLocation();
+        }
 
+        public override SC2APIProtocol.Action Update(SC2GameState gameState)
+        {
+            SetVariable(gameState);
+            SC2APIProtocol.Action answer = NewAction();
             coolDownCommand.Update(this.gameLoop);
             logPrintf("\n{0} Update {1} {2} {3}", this.GetType().Name, this.gameLoop, coolDownCommand.ToString(), this.upgradeIDs.ToString());
             if (gameState.NewObservation.Observation.GameLoop == prevStep)
