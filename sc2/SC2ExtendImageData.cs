@@ -16,19 +16,29 @@ namespace sc2
         public bool flgDrawGridPos = true;
         public bool flgDrawGrid = true;
         public bool flgDrawValue = true;
+        public bool flgDrawTarget = false;
         public bool flgColor = false;
     }
 
     public static class SC2ExtendImageData
     {
-        public static Pen penRed = new Pen(System.Drawing.Color.Red, 2);
-        public static Pen penGreen = new Pen(System.Drawing.Color.Green, 2);
-        public static Pen penBlue = new Pen(System.Drawing.Color.Blue, 2);
-        public static Pen penWhite = new Pen(System.Drawing.Color.White, 2);
-        public static Pen penYellow = new Pen(System.Drawing.Color.Yellow, 2);
-        public static Pen penBlack = new Pen(System.Drawing.Color.Black, 2);
-        public static Pen penOrange = new Pen(System.Drawing.Color.Orange, 2);
-        public static Pen penViolet = new Pen(System.Drawing.Color.Violet, 2);
+        public static Pen penRed = new Pen(System.Drawing.Color.Red, 1);
+        public static Pen penGreen = new Pen(System.Drawing.Color.Green, 1);
+        public static Pen penBlue = new Pen(System.Drawing.Color.Blue, 1);
+        public static Pen penWhite = new Pen(System.Drawing.Color.White, 1);
+        public static Pen penYellow = new Pen(System.Drawing.Color.Yellow, 1);
+        public static Pen penBlack = new Pen(System.Drawing.Color.Black, 1);
+        public static Pen penOrange = new Pen(System.Drawing.Color.Orange, 1);
+        public static Pen penViolet = new Pen(System.Drawing.Color.Violet, 1);
+
+        public static Pen penRed2 = new Pen(System.Drawing.Color.Red);
+        public static Pen penGreen2 = new Pen(System.Drawing.Color.Green, 2);
+        public static Pen penBlue2 = new Pen(System.Drawing.Color.Blue, 2);
+        public static Pen penWhite2 = new Pen(System.Drawing.Color.White, 2);
+        public static Pen penYellow2 = new Pen(System.Drawing.Color.Yellow, 2);
+        public static Pen penBlack2 = new Pen(System.Drawing.Color.Black, 2);
+        public static Pen penOrange2 = new Pen(System.Drawing.Color.Orange, 2);
+        public static Pen penViolet2 = new Pen(System.Drawing.Color.Violet, 2);
 
         public static Bitmap ByteArrayToBitmap(byte[] data, int width, int height)
         {
@@ -99,14 +109,14 @@ namespace sc2
                 }
             }
             if (units != null) {
-                DrawUnits(g, imgData.Size.Y, scale, units);
+                DrawUnits(g, imgData.Size.Y, scale, units, options);
             }
             g.Save();
             g.Dispose();
             return bv;
         }
 
-        public static void DrawUnits(Graphics g, int gameY, float scale, List<Unit> units )
+        public static void DrawUnits(Graphics g, int gameY, float scale, List<Unit> units, ToDebugBitmapOption option = null )
         {
             foreach (Unit u in units)
             {
@@ -117,7 +127,34 @@ namespace sc2
                     case Alliance.Neutral: pen = penGreen; break;
                     case Alliance.Self: pen = penBlue; break;
                 }
-                g.DrawCircle(pen, u.Pos.X * scale, (gameY - u.Pos.Y) * scale, u.Radius * scale);
+                System.Drawing.Point myPoint = u.Pos.ToTopLeftPoint(gameY,scale);
+                g.DrawCircle(pen, myPoint.X,myPoint.Y, u.Radius * scale);
+                if (option != null)
+                {
+                    if (option.flgDrawTarget)
+                    {
+                        foreach(var o in u.Orders)
+                        {
+                            SC2APIProtocol.Point targetPoint = o.TargetWorldSpacePos;
+                            if (o.TargetUnitTag != 0)
+                            {
+                                Unit targtUint = units.GetUnit((uint)o.TargetUnitTag);
+                                if (targtUint != null)
+                                {
+                                    targetPoint = u.Pos;
+                                }
+                            }
+                            if (targetPoint != null)
+                            {
+                                System.Drawing.Point drawTargetPoint = targetPoint.ToTopLeftPoint(gameY, scale);
+                                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+                                g.DrawLine(pen, myPoint, drawTargetPoint);
+                                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Solid;
+                            }
+
+                        }
+                    }
+                }
             }
         }
 

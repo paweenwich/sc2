@@ -1,4 +1,6 @@
 ﻿using Accord.MachineLearning;
+using MoreLinq;
+using Newtonsoft.Json;
 using SC2APIProtocol;
 using System;
 using System.Collections.Generic;
@@ -43,12 +45,17 @@ namespace sc2
 
         public static String ToStringEx(this Unit self)
         {
+          return self.ToSimpleString() + " " + self.ToString();
+        }
+
+        public static String ToSimpleString(this Unit self)
+        {
             StringBuilder sb = new StringBuilder();
-            sb.Append(Enum.GetName(typeof(UNIT_TYPEID), self.UnitType) +  " ");
-            if(self.Orders.Count > 0)
+            sb.Append(Enum.GetName(typeof(UNIT_TYPEID), self.UnitType) + " ");
+            if (self.Orders.Count > 0)
             {
                 sb.Append("[");
-                foreach(UnitOrder uo in self.Orders)
+                foreach (UnitOrder uo in self.Orders)
                 {
                     sb.Append(Enum.GetName(typeof(ABILITY_ID), uo.AbilityId) + " ");
                 }
@@ -63,8 +70,13 @@ namespace sc2
                 }
                 sb.Append("]");
             }
+            return sb.ToString();
+        }
 
-            return sb.ToString() + " " + self.ToString();
+        public static String ToJson(this Unit self)
+        {
+            dynamic obj = JsonConvert.DeserializeObject(self.ToString());
+            return JsonConvert.SerializeObject(obj, Formatting.Indented);
         }
 
         public static bool IsBaseBuilding(this Unit u)
@@ -193,28 +205,12 @@ namespace sc2
 
         public static bool hasOrder(this List<Unit> self, ABILITY_ID ability)
         {
-            foreach(Unit u in self)
-            {
-                if (u.HasOrder(ability))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return (self.FirstOrDefault(u => u.HasOrder(ability)) != null);
         }
 
         public static List<Unit> GetUnitInRange(this Unit self,List<Unit> units, float range = 12.0f)
         {
-            List<Unit> unitOut = new List<Unit>();
-            foreach(Unit u in units)
-            {
-                if (u == self) continue;
-                if(self.Pos.Dist(u.Pos) <= range)
-                {
-                    unitOut.Add(u);
-                }
-            }
-            return unitOut;
+            return units.Where(u => (u!= self) && (self.Pos.Dist(u.Pos) <= range)).ToList();
         }
 
         public static List<Unit> GetUnitInRange(this List<Unit> self, List<Unit> units, float range = 12.0f)
@@ -222,13 +218,26 @@ namespace sc2
             HashSet<Unit> unitOut = new HashSet<Unit>();
             foreach(Unit u in self)
             {
-                foreach(Unit a in u.GetUnitInRange(units, range))
-                {
-                    unitOut.Add(a);
-                }
+                unitOut.UnionWith(new HashSet<Unit>(u.GetUnitInRange(units, range)));
             }
             return unitOut.ToList();
         }
+
+        public static Unit GetUnit(this List<Unit> self,uint tag)
+        {
+            return self.FirstOrDefault(u => u.Tag == tag);
+        }
+        public static Unit GetUnit(this List<Unit> self, Point pos)
+        {
+            Unit ret = self.MinBy(u => u.Pos.Dist(pos));
+            float dist = ret.Pos.Dist(pos);
+            if(dist <= ret.Radius)
+            {
+                return ret;
+            }
+            return null;
+        }
+
 
     }
 }

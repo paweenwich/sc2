@@ -23,6 +23,7 @@ namespace sc2
         {
             InitializeComponent();
             ListGameStates();
+            
         }
 
         private void runToolStripMenuItem_Click(object sender, EventArgs e)
@@ -179,6 +180,7 @@ namespace sc2
         }
         public float picScreenScale = 10f;
         public SC2GameState currentGameState;
+        public SC2Bot currentBot;
         public void LoadGameState(String fileName)
         {
             currentGameState = new SC2GameState(fileName);
@@ -206,15 +208,16 @@ namespace sc2
                     flgDrawGrid = chkDrawGrid.Checked,
                     flgDrawGridPos = chkDrawPosition.Checked,
                     flgDrawValue = chkDrawValue.Checked,
+                    flgDrawTarget = chkDrawTarget.Checked,
                     flgColor = true
                 }
             );
-            TerranBot bot = new TerranBot();
+            currentBot = new TerranBot();
             //bot.SetBoolProperty("Log", true);
-            bot.SetVariable(currentGameState);
-            if (bot.enemyUnit.all.Count() > 0)
+            currentBot.SetVariable(currentGameState);
+            if (currentBot.enemyUnit.all.Count() > 0)
             {
-                List<Unit> units = bot.enemyUnit.all.GetUnitInRange(bot.myUnit.armyUnit);
+                List<Unit> units = currentBot.enemyUnit.all.GetUnitInRange(currentBot.myUnit.armyUnit);
                 if (units.Count > 0)
                 {
                     Console.WriteLine(units.ToString());
@@ -223,7 +226,7 @@ namespace sc2
             }
 
             picScreen.Image = bmpHeight;
-            bmpHeight.Save("test.png");
+            //bmpHeight.Save("test.png");
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -249,6 +252,46 @@ namespace sc2
         private void drawGridToolStripMenuItem_Click(object sender, EventArgs e)
         {
             RefreshPicScreen();
+        }
+
+        private void picScreen_MouseHover(object sender, EventArgs e)
+        {
+        }
+
+        private System.Drawing.Point oldLocation = System.Drawing.Point.Empty;
+        private void picScreen_MouseMove(object sender, MouseEventArgs e)
+        {
+            var pos = picScreen.PointToClient(Cursor.Position);
+            if (pos != oldLocation)
+            {
+                oldLocation = pos;
+                // convert tol world position
+                var p = pos.ToButtomLeftPoint(picScreen.Height, 1 / picScreenScale);
+                if (currentBot != null)
+                {
+                    // Find Unit at this point 
+                    Unit unitAtMouse = currentBot.allUnits.GetUnit(p);
+                    if (unitAtMouse != null)
+                    {
+                        String strText = unitAtMouse.ToSimpleString() + "\n" +  unitAtMouse.ToJson();
+                        //picScreenToolTip.SetToolTip(picScreen, strText);
+                        //picScreenToolTip.ToolTipTitle = "Position";
+                        picScreenToolTip.Show(strText, picScreen, 10000);
+
+                        //currentBot.allUnits.Get
+                        //Console.WriteLine("Mouse move " + strPos);
+                        picScreenToolTip.Active = true;
+                    }
+                    else
+                    {
+                        picScreenToolTip.Active = false;
+                    }
+                }
+                else
+                {
+                    picScreenToolTip.ToolTipTitle = "";
+                }
+            }
         }
     }
 

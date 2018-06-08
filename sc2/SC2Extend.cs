@@ -39,6 +39,21 @@ namespace sc2
             float dy = p1.Y - y;
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
+        public static System.Drawing.Point ToPoint(this SC2APIProtocol.Point self,float scale=1.0f)
+        {
+            return new System.Drawing.Point((int) (self.X*scale),(int) (self.Y*scale));
+        }
+        public static System.Drawing.Point ToTopLeftPoint(this SC2APIProtocol.Point self, int worldHeight, float scale = 1.0f)
+        {
+            return new System.Drawing.Point((int)(self.X * scale), (int)((worldHeight - self.Y) * scale));
+        }
+        public static SC2APIProtocol.Point ToButtomLeftPoint(this System.Drawing.Point self, int worldHeight, float scale = 1.0f)
+        {
+            SC2APIProtocol.Point p = new SC2APIProtocol.Point();
+            p.X = (self.X * scale);
+            p.Y = ((worldHeight - self.Y) * scale);
+            return p;
+        }
 
         public static float Dist(this Point2D p1, Point2D p2)
         {
