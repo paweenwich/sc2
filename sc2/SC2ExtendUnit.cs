@@ -223,8 +223,16 @@ namespace sc2
             return unitOut.ToList();
         }
 
-        public static Unit GetUnit(this List<Unit> self,uint tag)
+        public static Unit GetUnit(this List<Unit> self,ulong tag)
         {
+            /*foreach (Unit u in self)
+            {
+                if(u.Tag == tag)
+                {
+                    return u;
+                }
+            }
+            return null;*/
             return self.FirstOrDefault(u => u.Tag == tag);
         }
         public static Unit GetUnit(this List<Unit> self, Point pos)

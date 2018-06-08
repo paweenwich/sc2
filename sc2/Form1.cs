@@ -178,7 +178,7 @@ namespace sc2
                 tvGameState.Nodes.Add(tn);
             }
         }
-        public float picScreenScale = 10f;
+        public float picScreenScale = 16f;
         public SC2GameState currentGameState;
         public SC2Bot currentBot;
         public void LoadGameState(String fileName)
@@ -231,7 +231,7 @@ namespace sc2
 
         private void button1_Click(object sender, EventArgs e)
         {
-            picScreenScale *= 1.5f;
+            picScreenScale *= 1.25f;
             if(picScreenScale> 100)
             {
                 picScreenScale = 100;
@@ -241,7 +241,7 @@ namespace sc2
 
         private void button2_Click(object sender, EventArgs e)
         {
-            picScreenScale /= 1.5f;
+            picScreenScale /= 1.25f;
             if (picScreenScale < 10)
             {
                 picScreenScale = 10;

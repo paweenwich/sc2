@@ -135,21 +135,27 @@ namespace sc2
                     {
                         foreach(var o in u.Orders)
                         {
+                            Pen targetPen = pen;
                             SC2APIProtocol.Point targetPoint = o.TargetWorldSpacePos;
                             if (o.TargetUnitTag != 0)
                             {
-                                Unit targtUint = units.GetUnit((uint)o.TargetUnitTag);
+                                Unit targtUint = units.GetUnit(o.TargetUnitTag);
                                 if (targtUint != null)
                                 {
-                                    targetPoint = u.Pos;
+                                    targetPen = penWhite;
+                                    targetPoint = targtUint.Pos;
                                 }
                             }
                             if (targetPoint != null)
                             {
                                 System.Drawing.Point drawTargetPoint = targetPoint.ToTopLeftPoint(gameY, scale);
-                                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
-                                g.DrawLine(pen, myPoint, drawTargetPoint);
-                                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Solid;
+                                if (targetPen == penWhite)
+                                {
+                                    g.DrawCircle(targetPen, myPoint.X, myPoint.Y, 2);
+                                }
+                                targetPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+                                g.DrawLine(targetPen, myPoint, drawTargetPoint);
+                                targetPen.DashStyle = System.Drawing.Drawing2D.DashStyle.Solid;
                             }
 
                         }

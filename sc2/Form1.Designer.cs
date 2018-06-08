@@ -287,7 +287,9 @@
             // 
             // chkDrawTarget
             // 
+            this.chkDrawTarget.Checked = true;
             this.chkDrawTarget.CheckOnClick = true;
+            this.chkDrawTarget.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkDrawTarget.Name = "chkDrawTarget";
             this.chkDrawTarget.Size = new System.Drawing.Size(181, 26);
             this.chkDrawTarget.Text = "Draw Target";
