@@ -136,11 +136,16 @@ namespace sc2
         public Point2D rallyPoint;
         public HashSet<ABILITY_ID> researched = new HashSet<ABILITY_ID>();
     }
+    public class SC2BotOption
+    {
+        public bool flgReadMode = true;
+    }
 
     public class SC2Bot : ISC2Bot
     {
         protected int prevStep = -1;
         protected bool first = true;
+        public SC2BotOption option = new SC2BotOption();
         public int gameLoop = 0;
         public ResponseObservation newObservation;
         public SC2GameState gameState;
@@ -159,6 +164,7 @@ namespace sc2
         public List<Point2D> baseLocations;
         public EnemyUnits enemyUnit ;
         public MyUnits myUnit;
+        public String saveDirName;
 
         public void logDebug(String data)
         {
@@ -194,14 +200,34 @@ namespace sc2
             return boolProperty[name];
         }
 
-        public SC2Bot()
+        public SC2Bot(SC2BotOption option = null)
         {
+            if (option == null)
+            {
+                option = new SC2BotOption();
+            }
+            this.option = option;
             SetBoolProperty("Auto", true);
             SetBoolProperty("Log", false);
             SetBoolProperty("DumpNetural", false);
             SetBoolProperty("DumpSelf", true);
             SetBoolProperty("DumpEnemy", true);
             SetBoolProperty("DumpWorker", false);
+
+            if (this.option.flgReadMode == false)
+            {
+                saveDirName = String.Format("GS{0:yyyyMMdd-HHmmss}", DateTime.Now);
+                DirectoryInfo dir = new DirectoryInfo(saveDirName);
+                if (dir.Exists)
+                {
+                    dir.Empty();
+                }
+                else
+                {
+                    dir.Create();
+                }
+            }
+
         }
 
         public override void Init(SC2GameState gameState)
@@ -225,14 +251,6 @@ namespace sc2
             pathingGridData.imgData.Save(@"PathingGrid.bin");
             pathingGridData.imgData.ToDebugBitmap().Save(@"PathingGridDebug.png", ImageFormat.Png);
 
-            DirectoryInfo dir = new DirectoryInfo("gameState");
-            if (dir.Exists)
-            {
-                //dir.Empty();
-            }else
-            {
-                dir.Create();
-            }
             OnInit(gameState);
         }
 
@@ -273,17 +291,20 @@ namespace sc2
                 Init(gameState);
                 return answer;
             }
-            if (gameLoop % 50 == 0)
+            if ((gameLoop % 5 == 0) && (myUnit.armyUnit.Count > 0))
             {
                 if (GetBoolProperty("Log"))
                 { 
                     DumpUnits();
                     //DumpImage();
                 }
-                Stream s = new FileStream(String.Format(@"gameState/{0:00000}.json",gameLoop), FileMode.Create);
-                gameState.WriteTo(s);
-                s.Flush();
-                s.Close();
+                if (option.flgReadMode == false)
+                {
+                    Stream s = new FileStream(String.Format(@"{1}/{0:00000}.json", gameLoop, saveDirName), FileMode.Create);
+                    gameState.WriteTo(s);
+                    s.Flush();
+                    s.Close();
+                }
                 //String output = JsonConvert.SerializeObject(this.gameState, Formatting.Indented);
                 //File.WriteAllText(String.Format(@"gameState/{0:00000}.json", gameLoop), output);
             }

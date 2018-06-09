@@ -13,6 +13,11 @@ namespace sc2
     {
         public Dictionary<Point2D, TerranBuildPattern> rampData = new Dictionary<Point2D, TerranBuildPattern>();
 
+        public TerranBot(SC2BotOption option = null): base(option)
+        {
+            
+        }
+
         public SC2APIProtocol.Action Stimpack(List<Unit> units)
         {
             SC2APIProtocol.Action answer = NewAction();
@@ -73,8 +78,19 @@ namespace sc2
 
                     }
                     else {
-                        targetPos = GetNextEnemyExpansion(startLocations[0]);
-                        logDebug("AttackAttack EnemyExpansion at " + targetPos.ToString());
+                        float ax = idleArmy.Average(x => x.Pos.X);
+                        float ay = idleArmy.Average(x => x.Pos.Y);
+                        logPrintf("AttackAttack average at expansion {0},{1}", ax, ay);
+                        if (startLocations[0].Dist(ax, ay) < 3)
+                        {
+                            logDebug("AttackAttack already at expansion");
+                            targetPos = startLocations[0];
+                        }
+                        else
+                        {
+                            targetPos = GetNextEnemyExpansion(startLocations[0]);
+                            logDebug("AttackAttack EnemyExpansion at " + targetPos.ToString());
+                        }
                     }
                 }
                 if (targetPos != null)
@@ -604,6 +620,20 @@ namespace sc2
                     logPrintf("STIM {0}", stimUnits.Count);
                     answer = Stimpack(stimUnits);
                     return answer;
+                }
+            }
+
+            if(myUnit.armyUnit.Count > 0)
+            {
+                // Send to Dead
+                List<Unit> noOrderUnits =  myUnit.armyUnit.Where(u => u.Orders.Count == 0).ToList();
+                if (noOrderUnits.Count > 0)
+                {
+                    SC2APIProtocol.Action ret = AttackAttack(noOrderUnits);
+                    if (ret != null)
+                    {
+                        return ret;
+                    }
                 }
             }
 

@@ -28,7 +28,7 @@ namespace sc2
 
         private void runToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ISC2Bot bot = (ISC2Bot) new TerranBot();
+            ISC2Bot bot = (ISC2Bot) new TerranBot(new SC2BotOption {flgReadMode = false });
             Program.bot = bot;
             BuildMenu(bot);
             Thread newThread = new Thread(Program.RunSC2);
@@ -123,27 +123,10 @@ namespace sc2
 
         private void test3ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SC2Bot bot = new TerranBot();
-            bot.SetBoolProperty("Log", true);
-            bot.Update(currentGameState);
-            if (bot.enemyUnit.all.Count() > 0)
-            {
-
-            }
-
 
         }
         private void saveStateToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //SC2Bot sc2bot = (SC2Bot) Program.bot;
-            //sc2bot.newObservation.Save(@"NewObservation.bin");
-            //var settings = new SharpSerializerBinarySettings(BinarySerializationMode.Burst);
-            //var serializer = new SharpSerializer(false);
-            //serializer.Serialize(sc2bot.gameState, "sc2bot.xml");
-            TerranBot tb = new TerranBot();
-            string output = JsonConvert.SerializeObject(tb);
-            tb = JsonConvert.DeserializeObject<TerranBot>(output);
-            //Console.WriteLine(output);
         }
 
         private void test4ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -162,19 +145,43 @@ namespace sc2
         private void tvGameState_AfterSelect(object sender, TreeViewEventArgs e)
         {
             TreeView tv = (TreeView)(sender);
-            LoadGameState(((FileInfo)tv.SelectedNode.Tag).FullName);
-
+            if(tv.SelectedNode.Tag.GetType() == typeof(FileInfo))
+            {
+                LoadGameState(((FileInfo)tv.SelectedNode.Tag).FullName);
+                return;
+            }
+            if (tv.SelectedNode.Tag.GetType() == typeof(DirectoryInfo))
+            {
+                if (tv.SelectedNode.GetNodeCount(false) ==0)
+                {
+                    ListGameStatesFromDir(tv.SelectedNode,((DirectoryInfo)tv.SelectedNode.Tag).FullName);
+                }
+                return;
+            }
+        }
+        public void ListGameStatesFromDir(TreeNode node,String dirName)
+        {
+            String[] files = Directory.GetFiles(dirName);
+            foreach (String file in files)
+            {
+                FileInfo f = new FileInfo(file);
+                //Console.WriteLine(f.Name);
+                TreeNode tn = new TreeNode(f.Name);
+                tn.ImageIndex = 2;
+                tn.SelectedImageIndex = 2;
+                tn.Tag = f;
+                node.Nodes.Add(tn);
+            }
         }
         public void ListGameStates()
         {
             tvGameState.Nodes.Clear();
-            String[] files = Directory.GetFiles(@".\gameState");
-            foreach (String file in files)
+            List<String> dirs = Directory.GetDirectories(@".").Where(u => u.StartsWith(@".\GS")).ToList();
+            foreach(String dir in dirs)
             {
-                FileInfo f = new FileInfo(file);
-                Console.WriteLine(f.Name);
-                TreeNode tn = new TreeNode(f.Name);
-                tn.Tag = f;
+                DirectoryInfo d = new DirectoryInfo(dir);
+                TreeNode tn = new TreeNode(d.Name);
+                tn.Tag = d;
                 tvGameState.Nodes.Add(tn);
             }
         }
@@ -292,6 +299,21 @@ namespace sc2
                     picScreenToolTip.ToolTipTitle = "";
                 }
             }
+        }
+
+        private void tvGameState_AfterExpand(object sender, TreeViewEventArgs e)
+        {
+            TreeView tv = (TreeView)(sender);
+            tv.SelectedNode.ImageIndex = 1;
+            tv.SelectedNode.SelectedImageIndex = 1;
+        }
+
+        private void tvGameState_AfterCollapse(object sender, TreeViewEventArgs e)
+        {
+            TreeView tv = (TreeView)(sender);
+            tv.SelectedNode.ImageIndex = 0;
+            tv.SelectedNode.SelectedImageIndex = 0;
+            tv.Refresh();
         }
     }
 

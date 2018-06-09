@@ -84,7 +84,7 @@ namespace sc2
         /// The main entry point for the application.
         /// </summary>
         //[STAThread]
-        public static ISC2Bot bot = new TerranBot();
+        public static ISC2Bot bot;// = new TerranBot();
         static void Main()
         {
             Application.EnableVisualStyles();
@@ -118,7 +118,7 @@ namespace sc2
             var gameSettings =
                 Sc2Game.GameSettings.OfUserSettings(userSettings)
                 .WithMap(@"Simple64.SC2Map")
-                .WithRealtime(true)
+                //.WithRealtime(true)
                 //.WithStepsize(10)
                 ;
             //.WithRealtime(true);

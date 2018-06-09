@@ -41,6 +41,7 @@
             this.chkDrawGrid = new System.Windows.Forms.ToolStripMenuItem();
             this.chkDrawPosition = new System.Windows.Forms.ToolStripMenuItem();
             this.chkDrawValue = new System.Windows.Forms.ToolStripMenuItem();
+            this.chkDrawTarget = new System.Windows.Forms.ToolStripMenuItem();
             this.debugToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.test2ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -52,10 +53,10 @@
             this.button2 = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.pnlView = new System.Windows.Forms.Panel();
-            this.tvGameState = new System.Windows.Forms.TreeView();
             this.picScreen = new System.Windows.Forms.PictureBox();
-            this.chkDrawTarget = new System.Windows.Forms.ToolStripMenuItem();
+            this.tvGameState = new System.Windows.Forms.TreeView();
             this.picScreenToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.imageList1 = new System.Windows.Forms.ImageList(this.components);
             this.menuStrip1.SuspendLayout();
             this.tabMain.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -137,7 +138,7 @@
             // 
             this.chkDrawGrid.CheckOnClick = true;
             this.chkDrawGrid.Name = "chkDrawGrid";
-            this.chkDrawGrid.Size = new System.Drawing.Size(181, 26);
+            this.chkDrawGrid.Size = new System.Drawing.Size(176, 26);
             this.chkDrawGrid.Text = "Draw Grid";
             this.chkDrawGrid.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
             // 
@@ -145,7 +146,7 @@
             // 
             this.chkDrawPosition.CheckOnClick = true;
             this.chkDrawPosition.Name = "chkDrawPosition";
-            this.chkDrawPosition.Size = new System.Drawing.Size(181, 26);
+            this.chkDrawPosition.Size = new System.Drawing.Size(176, 26);
             this.chkDrawPosition.Text = "Draw Position";
             this.chkDrawPosition.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
             // 
@@ -153,9 +154,19 @@
             // 
             this.chkDrawValue.CheckOnClick = true;
             this.chkDrawValue.Name = "chkDrawValue";
-            this.chkDrawValue.Size = new System.Drawing.Size(181, 26);
+            this.chkDrawValue.Size = new System.Drawing.Size(176, 26);
             this.chkDrawValue.Text = "Draw Value";
             this.chkDrawValue.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
+            // 
+            // chkDrawTarget
+            // 
+            this.chkDrawTarget.Checked = true;
+            this.chkDrawTarget.CheckOnClick = true;
+            this.chkDrawTarget.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkDrawTarget.Name = "chkDrawTarget";
+            this.chkDrawTarget.Size = new System.Drawing.Size(176, 26);
+            this.chkDrawTarget.Text = "Draw Target";
+            this.chkDrawTarget.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
             // 
             // debugToolStripMenuItem
             // 
@@ -264,16 +275,6 @@
             this.pnlView.TabIndex = 2;
             this.pnlView.TabStop = true;
             // 
-            // tvGameState
-            // 
-            this.tvGameState.Dock = System.Windows.Forms.DockStyle.Left;
-            this.tvGameState.Location = new System.Drawing.Point(3, 3);
-            this.tvGameState.Name = "tvGameState";
-            this.tvGameState.Size = new System.Drawing.Size(191, 405);
-            this.tvGameState.TabIndex = 3;
-            this.tvGameState.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvGameState_AfterSelect);
-            this.tvGameState.Click += new System.EventHandler(this.tvGameState_Click);
-            // 
             // picScreen
             // 
             this.picScreen.Location = new System.Drawing.Point(6, 3);
@@ -285,15 +286,28 @@
             this.picScreen.MouseHover += new System.EventHandler(this.picScreen_MouseHover);
             this.picScreen.MouseMove += new System.Windows.Forms.MouseEventHandler(this.picScreen_MouseMove);
             // 
-            // chkDrawTarget
+            // tvGameState
             // 
-            this.chkDrawTarget.Checked = true;
-            this.chkDrawTarget.CheckOnClick = true;
-            this.chkDrawTarget.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkDrawTarget.Name = "chkDrawTarget";
-            this.chkDrawTarget.Size = new System.Drawing.Size(181, 26);
-            this.chkDrawTarget.Text = "Draw Target";
-            this.chkDrawTarget.Click += new System.EventHandler(this.drawGridToolStripMenuItem_Click);
+            this.tvGameState.Dock = System.Windows.Forms.DockStyle.Left;
+            this.tvGameState.ImageIndex = 0;
+            this.tvGameState.ImageList = this.imageList1;
+            this.tvGameState.Location = new System.Drawing.Point(3, 3);
+            this.tvGameState.Name = "tvGameState";
+            this.tvGameState.SelectedImageIndex = 0;
+            this.tvGameState.Size = new System.Drawing.Size(191, 405);
+            this.tvGameState.TabIndex = 3;
+            this.tvGameState.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.tvGameState_AfterCollapse);
+            this.tvGameState.AfterExpand += new System.Windows.Forms.TreeViewEventHandler(this.tvGameState_AfterExpand);
+            this.tvGameState.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tvGameState_AfterSelect);
+            this.tvGameState.Click += new System.EventHandler(this.tvGameState_Click);
+            // 
+            // imageList1
+            // 
+            this.imageList1.ImageStream = ((System.Windows.Forms.ImageListStreamer)(resources.GetObject("imageList1.ImageStream")));
+            this.imageList1.TransparentColor = System.Drawing.Color.Transparent;
+            this.imageList1.Images.SetKeyName(0, "Folder_16x.png");
+            this.imageList1.Images.SetKeyName(1, "FolderOpen_16x.png");
+            this.imageList1.Images.SetKeyName(2, "Script_16x.png");
             // 
             // Form1
             // 
@@ -346,6 +360,7 @@
         private System.Windows.Forms.PictureBox picScreen;
         private System.Windows.Forms.ToolStripMenuItem chkDrawTarget;
         private System.Windows.Forms.ToolTip picScreenToolTip;
+        private System.Windows.Forms.ImageList imageList1;
     }
 }
 
