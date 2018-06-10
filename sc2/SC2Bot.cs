@@ -291,22 +291,13 @@ namespace sc2
                 Init(gameState);
                 return answer;
             }
-            if ((gameLoop % 5 == 0) && (myUnit.armyUnit.Count > 0))
+            if (gameLoop % 5 == 0)
             {
                 if (GetBoolProperty("Log"))
                 { 
                     DumpUnits();
                     //DumpImage();
                 }
-                if (option.flgReadMode == false)
-                {
-                    Stream s = new FileStream(String.Format(@"{1}/{0:00000}.json", gameLoop, saveDirName), FileMode.Create);
-                    gameState.WriteTo(s);
-                    s.Flush();
-                    s.Close();
-                }
-                //String output = JsonConvert.SerializeObject(this.gameState, Formatting.Indented);
-                //File.WriteAllText(String.Format(@"gameState/{0:00000}.json", gameLoop), output);
             }
             //
             if (commandQueue.Count > 0)
@@ -344,6 +335,7 @@ namespace sc2
 
             if (GetBoolProperty("Auto"))
             {
+                SC2APIProtocol.Action ret = null;
                 //DoIdle
                 foreach (Unit a in myUnit.all)
                 {
@@ -353,19 +345,30 @@ namespace sc2
                         if (action != null)
                         {
                             logDebug("ACTION " + action.ToStringEx());
-                            return action;
+                            ret = action;
                         }
                     }
                 }
-                SC2APIProtocol.Action ret = Process();
+                
                 if (ret == null)
                 {
-                    logDebug("Warning: process() return null");
-                    ret = answer;
+                    ret = Process();
+                    if(ret == null)
+                    {
+                        ret = answer;
+                    }
                 }
                 if (ret.HasCommand())
                 {
                     logDebug(ret.ToStringEx());
+                }
+                if (option.flgReadMode == false)
+                {
+                    Stream s = new FileStream(String.Format(@"{1}/{0:00000}.json", gameLoop, saveDirName), FileMode.Create);
+                    gameState.CurrentAction = ret;
+                    gameState.WriteTo(s);
+                    s.Flush();
+                    s.Close();
                 }
                 return ret;
             }else

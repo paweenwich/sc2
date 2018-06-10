@@ -19,6 +19,7 @@ namespace sc2
         public ResponseGameInfo GameInfo;
         public ResponseObservation LastObservation;
         public List<SC2APIProtocol.Action> LastActions;
+        public SC2APIProtocol.Action CurrentAction;
         private SC2GameState()
         {
 
@@ -32,6 +33,7 @@ namespace sc2
             {
                 LastObservation = gameState.LastObservation.Value;
             }
+            CurrentAction = new SC2APIProtocol.Action();
         }
         public SC2GameState(String fileName)
         {
@@ -58,6 +60,8 @@ namespace sc2
                 a.Load(bw);
                 LastActions.Add(a);
             }
+            CurrentAction = new SC2APIProtocol.Action();
+            CurrentAction.Load(bw);
         }
         public void WriteTo(Stream s)
         {
@@ -70,6 +74,7 @@ namespace sc2
             {
                 a.Save(bw);
             }
+            CurrentAction.Save(bw);
         }
         /*public override String ToString()
         {

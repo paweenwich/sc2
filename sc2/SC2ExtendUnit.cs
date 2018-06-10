@@ -225,16 +225,9 @@ namespace sc2
 
         public static Unit GetUnit(this List<Unit> self,ulong tag)
         {
-            /*foreach (Unit u in self)
-            {
-                if(u.Tag == tag)
-                {
-                    return u;
-                }
-            }
-            return null;*/
             return self.FirstOrDefault(u => u.Tag == tag);
         }
+
         public static Unit GetUnit(this List<Unit> self, Point pos)
         {
             Unit ret = self.MinBy(u => u.Pos.Dist(pos));
@@ -244,6 +237,12 @@ namespace sc2
                 return ret;
             }
             return null;
+        }
+
+        public static Unit GetNearestUnit(this List<Unit> self, Point pos)
+        {
+            Unit ret = self.MinBy(u => u.Pos.Dist(pos));
+            return ret;
         }
 
 

@@ -40,6 +40,18 @@ namespace sc2
             return null;
         }
 
+        public SC2APIProtocol.Action RetreatToFriend(Unit u)
+        {
+            SC2APIProtocol.Action answer = NewAction();
+            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+            answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.MOVE;
+            int index = rand.Next(myUnit.armyUnit.Count);
+            //Unit targetUnit = myUnit.armyUnit.GetNearestUnit(u.Pos);
+            answer.ActionRaw.UnitCommand.UnitTags.Add(u.Tag);
+            answer.ActionRaw.UnitCommand.TargetUnitTag = myUnit.armyUnit[index].Tag;
+            return answer;
+        }
+
         public SC2APIProtocol.Action AttackAttack(List<Unit> idleArmy)
         {
             if (!coolDownCommand.IsDelayed("AttackAttack"))
@@ -625,6 +637,21 @@ namespace sc2
 
             if(myUnit.armyUnit.Count > 0)
             {
+                // Engagin Unit
+                List<Unit> fightingUnits = myUnit.armyUnit.Where(u => u.EngagedTargetTag != 0).ToList();
+                foreach (Unit u in fightingUnits) {
+                    Unit eu = GetUnitFromTag(u.EngagedTargetTag);
+                    if (eu.IsArmyUnit())
+                    {
+                        if (rand.Next(10) < 5)
+                        {
+                            // Retreat
+                            return RetreatToFriend(u);
+                        }
+                    }
+                }
+                
+
                 // Send to Dead
                 List<Unit> noOrderUnits =  myUnit.armyUnit.Where(u => u.Orders.Count == 0).ToList();
                 if (noOrderUnits.Count > 0)
