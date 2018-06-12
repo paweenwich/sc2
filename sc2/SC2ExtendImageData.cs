@@ -39,6 +39,11 @@ namespace sc2
         public static Pen penBlack2 = new Pen(System.Drawing.Color.Black, 2);
         public static Pen penOrange2 = new Pen(System.Drawing.Color.Orange, 2);
         public static Pen penViolet2 = new Pen(System.Drawing.Color.Violet, 2);
+        public static Font drawFont = new Font("Arial", 10);
+        public static SolidBrush drawBrushYellow = new SolidBrush(System.Drawing.Color.Yellow);
+        public static SolidBrush drawBrushWhite = new SolidBrush(System.Drawing.Color.White);
+        public static SolidBrush drawBrushBlack = new SolidBrush(System.Drawing.Color.Black);
+
 
         public static Bitmap ByteArrayToBitmap(byte[] data, int width, int height)
         {
@@ -57,9 +62,7 @@ namespace sc2
         public static Bitmap ToDebugBitmap(this ImageData imgData, float scale = 50.0f, List<Unit> units = null,ToDebugBitmapOption options = null)
         {
             if (options == null) options = new ToDebugBitmapOption();
-            Font drawFont = new Font("Arial", 10);
-            SolidBrush drawBrush = new SolidBrush(System.Drawing.Color.Yellow);
-            SolidBrush drawBrush2 = new SolidBrush(System.Drawing.Color.White);
+            //Font drawFont = new Font("Arial", 10);
             Pen pen = new Pen(System.Drawing.Color.Yellow, 1);
             Bitmap bv = new Bitmap((int)(imgData.Size.X * scale), (int)(imgData.Size.Y * scale), PixelFormat.Format32bppArgb);
             Graphics g = Graphics.FromImage(bv);
@@ -86,11 +89,11 @@ namespace sc2
                     }
                     if (options.flgDrawValue)
                     {
-                        g.DrawString("" + value, drawFont, drawBrush2, new PointF((float)(x) * scale, (float)(y + 0.5) * scale));
+                        g.DrawString("" + value, drawFont, drawBrushYellow, new PointF((float)(x) * scale, (float)(y + 0.5) * scale));
                     }
                     if (options.flgDrawGridPos)
                     {
-                        g.DrawString(String.Format("{0},{1}", x, imgData.Size.Y - y), drawFont, drawBrush, new PointF((float)(x) * scale, (float)(y) * scale));
+                        g.DrawString(String.Format("{0},{1}", x, imgData.Size.Y - y), drawFont, drawBrushWhite, new PointF((float)(x) * scale, (float)(y) * scale));
                     }
 
                 }

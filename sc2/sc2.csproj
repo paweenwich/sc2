@@ -111,6 +111,7 @@
     <Compile Include="SC2Extend.cs" />
     <Compile Include="SC2ExtendImageData.cs" />
     <Compile Include="SC2ExtendUnit.cs" />
+    <Compile Include="SC2GameState.cs" />
     <Compile Include="SelectablePanel.cs">
       <SubType>Component</SubType>
     </Compile>

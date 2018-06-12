@@ -17,13 +17,13 @@ namespace sc2
     {
         public abstract void Init(SC2GameState gameState);
         public abstract SC2APIProtocol.Action Update(SC2GameState gameState);
-        public abstract void SendCommand(SC2Command cmd);
+        //public abstract void SendCommand(SC2Command cmd);
         public abstract void SetBoolProperty(String name,bool value);
         public abstract bool GetBoolProperty(String name);
         public abstract List<String> GetBoolProperty();
     }
 
-    public enum SC2CommandType 
+/*    public enum SC2CommandType 
     {
         BUILD_SUPPLY=1,BUILD_BARRAK,MORPH_ORBITAL
     }
@@ -42,7 +42,7 @@ namespace sc2
                 return type.ToString();
             }
         }
-    }
+    }*/
 
     public class ScoreData : IComparable<ScoreData>
     {
@@ -150,7 +150,7 @@ namespace sc2
         public ResponseObservation newObservation;
         public SC2GameState gameState;
         public CoolDownCommand coolDownCommand = new CoolDownCommand();
-        public List<SC2Command> commandQueue  = new List<SC2Command>();
+        //public List<SC2Command> commandQueue  = new List<SC2Command>();
         public Bitmap bmpTerrainHeight;
         //public Bitmap bmpPlacementGrid;
         public SC2ImageData terrainHeightData;
@@ -186,10 +186,10 @@ namespace sc2
             return answer;
         }
 
-        public override void SendCommand(SC2Command cmd)
+        /*public override void SendCommand(SC2Command cmd)
         {
             commandQueue.Add(cmd);
-        }
+        }*/
 
         public override void SetBoolProperty(string name, bool value)
         {
@@ -300,7 +300,7 @@ namespace sc2
                 }
             }
             //
-            if (commandQueue.Count > 0)
+            /*if (commandQueue.Count > 0)
             {
                 SC2Command cmd = commandQueue[0];
                 commandQueue.RemoveAt(0);
@@ -310,7 +310,7 @@ namespace sc2
                 {
                     return action;
                 }
-            }
+            }*/
             // Create Tag here
             foreach (Unit a in allUnits)
             { 
@@ -729,10 +729,10 @@ namespace sc2
             return answer;
         }
 
-        public virtual SC2APIProtocol.Action OnCommand(SC2Command cmd)
+        /*public virtual SC2APIProtocol.Action OnCommand(SC2Command cmd)
         {
             return null;
-        }
+        }*/
 
         public virtual SC2APIProtocol.Action DoIdle(Unit u)
         {

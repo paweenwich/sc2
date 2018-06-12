@@ -58,9 +58,9 @@ namespace sc2
 
         private void sendCommandToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SC2Command cmd = new SC2Command();
+        /*    SC2Command cmd = new SC2Command();
             cmd.type = SC2CommandType.MORPH_ORBITAL;
-            Program.bot.SendCommand(cmd);
+            Program.bot.SendCommand(cmd);*/
         }
 
 
@@ -192,6 +192,8 @@ namespace sc2
         {
             currentGameState = new SC2GameState(fileName);
             RefreshPicScreen();
+            Console.WriteLine("Score = " + currentGameState.NewObservation.Observation.Score.ToString());
+            Console.WriteLine("AIActions = " + currentGameState.AIActions.ToStringEx());
         }
 
         public void DrawUnit(Bitmap bmp, List<Unit> units, float scale)
@@ -205,6 +207,32 @@ namespace sc2
             g.Save();
             g.Dispose();
         }
+
+        public void DrawUnitAction(Bitmap bmp, Unit u, float scale, List<Unit> allUnit, ActionRawUnitCommand cmd)
+        {
+            Graphics g = Graphics.FromImage(bmp);
+            //g.DrawLine(SC2ExtendImageData.penWhite, u.Pos.X * scale, bmp.Height - ((u.Pos.Y - u.Radius) * scale), u.Pos.X * scale, bmp.Height - ((u.Pos.Y + u.Radius) * scale));
+            //g.DrawLine(SC2ExtendImageData.penWhite, (u.Pos.X - u.Radius) * scale, bmp.Height - (u.Pos.Y * scale), (u.Pos.X + u.Radius) * scale, bmp.Height - (u.Pos.Y * scale));
+            g.DrawString(Enum.GetName(typeof(ABILITY_ID), cmd.AbilityId), SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushBlack, u.Pos.X * scale + 1, bmp.Height - (u.Pos.Y * scale) - 5 + 1);
+            g.DrawString(Enum.GetName(typeof(ABILITY_ID), cmd.AbilityId), SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushYellow, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale) - 5);
+            Pen targetPen = SC2ExtendImageData.penBlack;
+            Point2D targetPoint = cmd.TargetWorldSpacePos;
+            if (cmd.TargetUnitTag != 0)
+            {
+                Unit targtUint = allUnit.GetUnit(cmd.TargetUnitTag);
+                if (targtUint != null)
+                {
+                    targetPoint = targtUint.Pos.ToPoint2D();
+                }
+            }
+            if (targetPoint != null)
+            {
+                g.DrawLine(targetPen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), targetPoint.X * scale, bmp.Height - (targetPoint.Y * scale));
+            }
+            g.Save();
+            g.Dispose();
+        }
+
 
         public void RefreshPicScreen()
         {
@@ -231,7 +259,19 @@ namespace sc2
                     DrawUnit(bmpHeight, units, picScreenScale);
                 }    
             }
+            // Draw action
+            if (gs.CurrentAction.HasCommand())
+            {
+                foreach(ulong tag in gs.CurrentAction.ActionRaw.UnitCommand.UnitTags)
+                {
+                    Unit u = currentBot.allUnits.GetUnit(tag);
+                    if (u != null)
+                    {
+                        DrawUnitAction(bmpHeight, u, picScreenScale, currentBot.allUnits, gs.CurrentAction.ActionRaw.UnitCommand);
+                    }
+                }
 
+            }
             picScreen.Image = bmpHeight;
             //bmpHeight.Save("test.png");
         }

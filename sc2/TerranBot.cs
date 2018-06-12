@@ -300,7 +300,7 @@ namespace sc2
             return null;
         }
 
-        public override SC2APIProtocol.Action OnCommand(SC2Command cmd)
+        /*public override SC2APIProtocol.Action OnCommand(SC2Command cmd)
         {
             SC2APIProtocol.Action answer = NewAction();
             answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
@@ -334,7 +334,7 @@ namespace sc2
             logDebug(cmd.ToString());
             logDebug(answer.ToString());
             return answer;
-        }
+        }*/
         public override bool IsIdle(Unit u)
         {
             // if has attatchment as REACTOR
@@ -639,18 +639,31 @@ namespace sc2
             {
                 // Engagin Unit
                 List<Unit> fightingUnits = myUnit.armyUnit.Where(u => u.EngagedTargetTag != 0).ToList();
+                gameState.AIActions.Clear();
                 foreach (Unit u in fightingUnits) {
                     Unit eu = GetUnitFromTag(u.EngagedTargetTag);
                     if (eu.IsArmyUnit())
                     {
-                        if (rand.Next(10) < 5)
+                        if (answer.HasCommand())
                         {
-                            // Retreat
-                            return RetreatToFriend(u);
+                            gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.NONE });
+                        }
+                        else
+                        {
+                            if (rand.Next(10) < 5)
+                            {
+                                // Retreat
+                                answer = RetreatToFriend(u);
+                                answer.ActionRaw.UnitCommand.QueueCommand = false;
+                                gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.RETREAT_TO_FRIEND });
+                            }
+                            else
+                            {
+                                gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.NONE });
+                            }
                         }
                     }
                 }
-                
 
                 // Send to Dead
                 List<Unit> noOrderUnits =  myUnit.armyUnit.Where(u => u.Orders.Count == 0).ToList();

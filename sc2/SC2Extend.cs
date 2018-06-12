@@ -39,6 +39,16 @@ namespace sc2
             float dy = p1.Y - y;
             return (float)Math.Sqrt(dx * dx + dy * dy);
         }
+
+        public static Point2D ToPoint2D(this SC2APIProtocol.Point p1)
+        {
+            Point2D ret = new Point2D();
+            ret.X = p1.X;
+            ret.Y = p1.Y;
+            return ret;
+        }
+
+
         public static System.Drawing.Point ToPoint(this SC2APIProtocol.Point self,float scale=1.0f)
         {
             return new System.Drawing.Point((int) (self.X*scale),(int) (self.Y*scale));
@@ -141,7 +151,48 @@ namespace sc2
             foreach (System.IO.DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
         }
 
-        
+
+        public static void Save(this List<SC2UnitAction> self, BinaryWriter b)
+        {
+            b.Write(self.Count);
+            for(int i=0;i< self.Count; i++)
+            {
+                self[i].Save(b);
+            }
+        }
+        public static void Load(this List<SC2UnitAction> self, BinaryReader b)
+        {
+            self.Clear();
+            int num = b.ReadInt32();
+            for (int i = 0; i < num; i++)
+            {
+                SC2UnitAction a = new SC2UnitAction();
+                a.Load(b);
+                self.Add(a);
+            }
+        }
+
+        public static String ToStringEx<T>(this List<T> self)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("{");
+            sb.Append(String.Join(",",self.ToArray()));
+            /*for(int i=0;i<self.Count; i++)
+            {
+                if (i != 0) {
+                    sb.Append(",");
+                }
+                sb.Append(self[i].ToString());
+            }*/
+            sb.Append("}");
+            return sb.ToString();
+        }
+
+        public static void RandomFill(this Double[] self)
+        {
+
+        }
+
     }
 
 }

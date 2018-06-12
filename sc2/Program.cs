@@ -13,74 +13,7 @@ using System.Windows.Forms;
 namespace sc2
 {
 
-    public class SC2GameState
-    {
-        public ResponseObservation NewObservation;
-        public ResponseGameInfo GameInfo;
-        public ResponseObservation LastObservation;
-        public List<SC2APIProtocol.Action> LastActions;
-        public SC2APIProtocol.Action CurrentAction;
-        private SC2GameState()
-        {
-
-        }
-        public SC2GameState(GameState gameState)
-        {
-            NewObservation = gameState.NewObservation;
-            GameInfo = gameState.GameInfo;
-            LastActions = gameState.LastActions.ToList();
-            if (gameState.LastObservation != null)
-            {
-                LastObservation = gameState.LastObservation.Value;
-            }
-            CurrentAction = new SC2APIProtocol.Action();
-        }
-        public SC2GameState(String fileName)
-        {
-            Stream s = new FileStream(fileName, FileMode.Open);
-            LoadFrom(s);
-            s.Flush();
-            s.Close();
-        }
-
-        public void LoadFrom(Stream s)
-        {
-            BinaryReader bw = new BinaryReader(s);
-            NewObservation = new ResponseObservation();
-            NewObservation.Load(bw);
-            GameInfo = new ResponseGameInfo();
-            GameInfo.Load(bw);
-            LastObservation = new ResponseObservation();
-            LastObservation.Load(bw);
-            int num = bw.ReadInt32();
-            LastActions = new List<SC2APIProtocol.Action>();
-            for(int i=0;i<num;i++)
-            {
-                SC2APIProtocol.Action a = new SC2APIProtocol.Action();
-                a.Load(bw);
-                LastActions.Add(a);
-            }
-            CurrentAction = new SC2APIProtocol.Action();
-            CurrentAction.Load(bw);
-        }
-        public void WriteTo(Stream s)
-        {
-            BinaryWriter bw = new BinaryWriter(s);
-            NewObservation.Save(bw);
-            GameInfo.Save(bw);
-            LastObservation.Save(bw);
-            bw.Write(LastActions.Count);
-            foreach(SC2APIProtocol.Action a in LastActions)
-            {
-                a.Save(bw);
-            }
-            CurrentAction.Save(bw);
-        }
-        /*public override String ToString()
-        {
-            return JsonConvert.SerializeObject(this, Formatting.Indented);
-        }*/
-    }
+   
 
 
     static class Program
