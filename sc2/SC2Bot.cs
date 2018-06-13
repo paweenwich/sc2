@@ -144,7 +144,6 @@ namespace sc2
         public EnemyUnits enemyUnit ;
         public MyUnits myUnit;
         public String saveDirName;
-
         public void logDebug(String data)
         {
             if (GetBoolProperty("Log"))

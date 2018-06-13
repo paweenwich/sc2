@@ -133,6 +133,10 @@ namespace sc2
             data.action = ret;
             return ret;
         }
+        public virtual int GetBestAction(QState state)
+        {
+            return GetActionFromIndex(GetActionIndex(state));
+        }
         public virtual int GetActionFromIndex(int index)
         {
             return Actions[index];

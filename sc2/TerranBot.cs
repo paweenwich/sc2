@@ -12,7 +12,7 @@ namespace sc2
     public class TerranBot: SC2Bot
     {
         public Dictionary<Point2D, TerranBuildPattern> rampData = new Dictionary<Point2D, TerranBuildPattern>();
-
+        public TarranQLearning q = new TarranQLearning();
         public TerranBot(SC2BotOption option = null): base(option)
         {
             
@@ -300,41 +300,6 @@ namespace sc2
             return null;
         }
 
-        /*public override SC2APIProtocol.Action OnCommand(SC2Command cmd)
-        {
-            SC2APIProtocol.Action answer = NewAction();
-            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-            switch (cmd.type)
-            {
-                case SC2CommandType.BUILD_SUPPLY:
-                    {
-                        List<Unit> SCVs = GetMyUnits(UNIT_TYPEID.TERRAN_SCV);
-                        answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_SUPPLYDEPOT;
-                        answer.ActionRaw.UnitCommand.UnitTags.Add(SCVs[0].Tag);
-                        answer.ActionRaw.UnitCommand.TargetWorldSpacePos = cmd.targetPos;
-                        break;
-                    }
-                case SC2CommandType.BUILD_BARRAK:
-                    {
-                        List<Unit> SCVs = GetMyUnits(UNIT_TYPEID.TERRAN_SCV);
-                        answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.BUILD_BARRACKS;
-                        answer.ActionRaw.UnitCommand.UnitTags.Add(SCVs[0].Tag);
-                        answer.ActionRaw.UnitCommand.TargetWorldSpacePos = cmd.targetPos;
-                        break;
-                    }
-
-                case SC2CommandType.MORPH_ORBITAL:
-                    {
-                        List<Unit> CCs = GetMyUnits(UNIT_TYPEID.TERRAN_COMMANDCENTER);
-                        answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.MORPH_ORBITALCOMMAND;
-                        answer.ActionRaw.UnitCommand.UnitTags.Add(CCs[0].Tag);
-                        break;
-                    }
-            }
-            logDebug(cmd.ToString());
-            logDebug(answer.ToString());
-            return answer;
-        }*/
         public override bool IsIdle(Unit u)
         {
             // if has attatchment as REACTOR
@@ -640,31 +605,33 @@ namespace sc2
                 // Engagin Unit
                 List<Unit> fightingUnits = myUnit.armyUnit.Where(u => u.EngagedTargetTag != 0).ToList();
                 gameState.AIActions.Clear();
-                foreach (Unit u in fightingUnits) {
+                if (fightingUnits.Count > 0)
+                {
+                    int index = rand.Next(fightingUnits.Count);
+                    Unit u = fightingUnits[index];
                     Unit eu = GetUnitFromTag(u.EngagedTargetTag);
                     if (eu.IsArmyUnit())
                     {
-                        if (answer.HasCommand())
+                        Console.WriteLine("" + q.qData.Count());
+                        TarranQLearningAction action = (TarranQLearningAction)q.GetBestAction((QStringState)String.Format("{0}", fightingUnits.Count));
+                        switch (action)
                         {
-                            gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.NONE });
-                        }
-                        else
-                        {
-                            if (rand.Next(10) < 5)
-                            {
-                                // Retreat
-                                answer = RetreatToFriend(u);
-                                answer.ActionRaw.UnitCommand.QueueCommand = false;
-                                gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.RETREAT_TO_FRIEND });
-                            }
-                            else
-                            {
-                                gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.NONE });
-                            }
+                            case TarranQLearningAction.RETREAT_TO_FRIEND:
+                                {
+                                    answer = RetreatToFriend(u);
+                                    answer.ActionRaw.UnitCommand.QueueCommand = false;
+                                    gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.RETREAT_TO_FRIEND });
+                                    break;
+                                }
+                            case TarranQLearningAction.NONE:
+                                {
+                                    gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.NONE });
+                                    break;
+                                }
+
                         }
                     }
                 }
-
                 // Send to Dead
                 List<Unit> noOrderUnits =  myUnit.armyUnit.Where(u => u.Orders.Count == 0).ToList();
                 if (noOrderUnits.Count > 0)
