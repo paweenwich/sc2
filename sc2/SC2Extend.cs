@@ -190,7 +190,30 @@ namespace sc2
 
         public static void RandomFill(this Double[] self)
         {
+            Random r = new Random(self.GetHashCode());
+            for(int i = 0; i < self.Length; i++)
+            {
+                self[i] = r.NextDouble();
+            }
+        }
 
+        public static void Save(this double[] self, BinaryWriter b)
+        {
+            b.Write(self.Length);
+            for (int i = 0; i < self.Length; i++)
+            {
+                b.Write(self[i]);
+            }
+        }
+        public static double[] LoadDouble(BinaryReader b)
+        {
+            int num = b.ReadInt32();
+            double[] ret = new double[num];
+            for (int i = 0; i < num; i++)
+            {
+                ret[i] = b.ReadDouble();
+            }
+            return ret;
         }
 
     }

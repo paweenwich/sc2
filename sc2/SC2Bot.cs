@@ -23,27 +23,6 @@ namespace sc2
         public abstract List<String> GetBoolProperty();
     }
 
-/*    public enum SC2CommandType 
-    {
-        BUILD_SUPPLY=1,BUILD_BARRAK,MORPH_ORBITAL
-    }
-
-    public class SC2Command
-    {
-        public SC2CommandType type;
-        public Point2D targetPos;
-        public override string ToString()
-        {
-            if (targetPos != null)
-            {
-                return type.ToString() + " " + targetPos.ToString();
-            }else
-            {
-                return type.ToString();
-            }
-        }
-    }*/
-
     public class ScoreData : IComparable<ScoreData>
     {
         public float score;

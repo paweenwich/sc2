@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using SC2APIProtocol;
 using Starcraft2;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -74,26 +75,27 @@ namespace sc2
 
         private void test1ToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            TerranBot tb = (TerranBot)Program.bot;
-            Console.WriteLine(tb.allUnits.Count.ToString());
-            List<Point2D> points = tb.FindPlaceables((int)28.5, (int)60.5, 15, UNIT_TYPEID.TERRAN_BARRACKS, true);
-            ImageData heightMap = new ImageData();
-            heightMap.Load(@"TerrainHeight.bin");
-            ImageData placeMap = new ImageData();
-            placeMap.Load(@"PlacementGrid.bin");
-            float scale = 50f;
-            Bitmap bmp = placeMap.ToDebugBitmap(scale, null, new ToDebugBitmapOption {flgColor = true});
-            Graphics g = Graphics.FromImage(bmp);
-            foreach (Point2D p in points)
-            {
-                //Console.WriteLine(p.ToString());
-                //g.DrawRectangle(penViolet, new Rectangle((int)(p.X * scale), bmp.Height - (int)(p.Y * scale), (int)(5 * scale), (int)(3 * scale)));
-                g.DrawCircle(SC2ExtendImageData.penViolet, p.X * scale, bmp.Height - (p.Y * scale), 3 * scale);
+            TarranQLearning q = new TarranQLearning();
+            for (int i = 0; i < 10; i++) {
+                QStringState s = (QStringState)String.Format("{0:0000}",i);
+                int action = q.GetActionFromIndex(q.GetActionIndex(s));
+                TarranQLearningAction ta = (TarranQLearningAction)action;
+                Console.WriteLine(ta.ToString());
             }
+            String tmp = JsonConvert.SerializeObject(q);
+            Console.WriteLine(tmp);
+            BinaryWriter bw = new BinaryWriter(new FileStream("test.q", FileMode.Create));
+            q.Save(bw);
+            bw.Close();
 
-            g.Save();
-            g.Dispose();
-            bmp.Save(@"TerrainHeightWithUnitDebug.png", ImageFormat.Png);
+            BinaryReader br = new BinaryReader(new FileStream("test.q", FileMode.Open));
+            TarranQLearning q2 = new TarranQLearning();
+            q2.Load(br);
+            br.Close();
+            Console.WriteLine(JsonConvert.SerializeObject(q2));
+
+            //TarranQLearning q3 = JsonConvert.DeserializeObject<TarranQLearning>(tmp);
+            //Console.WriteLine(JsonConvert.SerializeObject(q3));
 
         }
         private void test2ToolStripMenuItem_Click(object sender, EventArgs e)

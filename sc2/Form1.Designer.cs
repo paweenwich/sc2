@@ -33,7 +33,6 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.starCraftToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.runToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.sendCommandToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveStateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadGameStateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.mnuOption = new System.Windows.Forms.ToolStripMenuItem();
@@ -55,8 +54,8 @@
             this.pnlView = new System.Windows.Forms.Panel();
             this.picScreen = new System.Windows.Forms.PictureBox();
             this.tvGameState = new System.Windows.Forms.TreeView();
-            this.picScreenToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.imageList1 = new System.Windows.Forms.ImageList(this.components);
+            this.picScreenToolTip = new System.Windows.Forms.ToolTip(this.components);
             this.menuStrip1.SuspendLayout();
             this.tabMain.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -82,7 +81,6 @@
             // 
             this.starCraftToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.runToolStripMenuItem,
-            this.sendCommandToolStripMenuItem,
             this.saveStateToolStripMenuItem,
             this.loadGameStateToolStripMenuItem});
             this.starCraftToolStripMenuItem.Name = "starCraftToolStripMenuItem";
@@ -95,13 +93,6 @@
             this.runToolStripMenuItem.Size = new System.Drawing.Size(194, 26);
             this.runToolStripMenuItem.Text = "Run";
             this.runToolStripMenuItem.Click += new System.EventHandler(this.runToolStripMenuItem_Click);
-            // 
-            // sendCommandToolStripMenuItem
-            // 
-            this.sendCommandToolStripMenuItem.Name = "sendCommandToolStripMenuItem";
-            this.sendCommandToolStripMenuItem.Size = new System.Drawing.Size(194, 26);
-            this.sendCommandToolStripMenuItem.Text = "SendCommand";
-            this.sendCommandToolStripMenuItem.Click += new System.EventHandler(this.sendCommandToolStripMenuItem_Click);
             // 
             // saveStateToolStripMenuItem
             // 
@@ -182,28 +173,28 @@
             // test1ToolStripMenuItem
             // 
             this.test1ToolStripMenuItem.Name = "test1ToolStripMenuItem";
-            this.test1ToolStripMenuItem.Size = new System.Drawing.Size(119, 26);
+            this.test1ToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.test1ToolStripMenuItem.Text = "Test1";
             this.test1ToolStripMenuItem.Click += new System.EventHandler(this.test1ToolStripMenuItem_Click);
             // 
             // test2ToolStripMenuItem
             // 
             this.test2ToolStripMenuItem.Name = "test2ToolStripMenuItem";
-            this.test2ToolStripMenuItem.Size = new System.Drawing.Size(119, 26);
+            this.test2ToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.test2ToolStripMenuItem.Text = "Test2";
             this.test2ToolStripMenuItem.Click += new System.EventHandler(this.test2ToolStripMenuItem_Click);
             // 
             // test3ToolStripMenuItem
             // 
             this.test3ToolStripMenuItem.Name = "test3ToolStripMenuItem";
-            this.test3ToolStripMenuItem.Size = new System.Drawing.Size(119, 26);
+            this.test3ToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.test3ToolStripMenuItem.Text = "Test3";
             this.test3ToolStripMenuItem.Click += new System.EventHandler(this.test3ToolStripMenuItem_Click);
             // 
             // test4ToolStripMenuItem
             // 
             this.test4ToolStripMenuItem.Name = "test4ToolStripMenuItem";
-            this.test4ToolStripMenuItem.Size = new System.Drawing.Size(119, 26);
+            this.test4ToolStripMenuItem.Size = new System.Drawing.Size(181, 26);
             this.test4ToolStripMenuItem.Text = "Test4";
             this.test4ToolStripMenuItem.Click += new System.EventHandler(this.test4ToolStripMenuItem_Click);
             // 
@@ -339,7 +330,6 @@
         private System.Windows.Forms.ToolStripMenuItem runToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem debugToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem test1ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem sendCommandToolStripMenuItem;
         private System.Windows.Forms.TextBox txtInput;
         private System.Windows.Forms.ToolStripMenuItem test2ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem mnuOption;
