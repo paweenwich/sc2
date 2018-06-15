@@ -79,11 +79,11 @@ namespace sc2
                         {
                             case 127: color = System.Drawing.Color.Black; break;
                             case 134: color = System.Drawing.Color.Orange; break;
-                            case 135: color = System.Drawing.Color.OrangeRed; break;
-                            case 143: color = System.Drawing.Color.Brown; break;
+                            case 135: color = System.Drawing.Color.Cyan; break;
+                            case 143: color = System.Drawing.Color.LightGray; break;
                             case 142: color = System.Drawing.Color.Green; break;
                             case 141: color = System.Drawing.Color.Lime; break;
-                            case 140: color = System.Drawing.Color.Cyan; break;
+                            case 140: color = System.Drawing.Color.Gray; break;
                         }
                         g.FillRectangle(new SolidBrush(color), new Rectangle((int)Math.Round(x * scale), (int)Math.Round(y * scale), (int)Math.Round(scale), (int)Math.Round(scale)));
                     }
@@ -131,7 +131,16 @@ namespace sc2
                     case Alliance.Self: pen = penBlue; break;
                 }
                 System.Drawing.Point myPoint = u.Pos.ToTopLeftPoint(gameY,scale);
-                g.DrawCircle(pen, myPoint.X,myPoint.Y, u.Radius * scale);
+                if (u.DisplayType == DisplayType.Snapshot)
+                {
+                    pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+                    g.DrawCircle(pen, myPoint.X, myPoint.Y, u.Radius * scale);
+                    pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Solid;
+                }
+                else
+                {
+                    g.DrawCircle(pen, myPoint.X, myPoint.Y, u.Radius * scale);
+                }
                 if (option != null)
                 {
                     if (option.flgDrawTarget)

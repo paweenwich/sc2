@@ -48,7 +48,8 @@ namespace sc2
             int index = rand.Next(myUnit.armyUnit.Count);
             //Unit targetUnit = myUnit.armyUnit.GetNearestUnit(u.Pos);
             answer.ActionRaw.UnitCommand.UnitTags.Add(u.Tag);
-            answer.ActionRaw.UnitCommand.TargetUnitTag = myUnit.armyUnit[index].Tag;
+            //answer.ActionRaw.UnitCommand.TargetUnitTag = myUnit.armyUnit[index].Tag;
+            answer.ActionRaw.UnitCommand.TargetWorldSpacePos = myUnit.armyUnit[index].Pos.ToPoint2D();
             return answer;
         }
 
@@ -600,18 +601,17 @@ namespace sc2
                 }
             }
 
-            if(myUnit.armyUnit.Count > 0)
+            if(myUnit.armyUnit.Count > 0 )
             {
-                // Engagin Unit
-                List<Unit> fightingUnits = myUnit.armyUnit.Where(u => u.EngagedTargetTag != 0).ToList();
-                gameState.AIActions.Clear();
-                if (fightingUnits.Count > 0)
+                if (enemyUnit.armyUnit.Count > 0)
                 {
-                    int index = rand.Next(fightingUnits.Count);
-                    Unit u = fightingUnits[index];
-                    Unit eu = GetUnitFromTag(u.EngagedTargetTag);
-                    if (eu.IsArmyUnit())
+                    // Engagin Unit
+                    List<Unit> fightingUnits = myUnit.armyUnit.Where(u => u.GetUnitInRange(enemyUnit.armyUnit).Count > 0).ToList();
+                    gameState.AIActions.Clear();
+                    if (fightingUnits.Count > 0)
                     {
+                        int index = rand.Next(fightingUnits.Count);
+                        Unit u = fightingUnits[index];
                         Console.WriteLine("" + q.qData.Count());
                         TarranQLearningAction action = (TarranQLearningAction)q.GetBestAction((QStringState)String.Format("{0}", fightingUnits.Count));
                         switch (action)
@@ -620,12 +620,12 @@ namespace sc2
                                 {
                                     answer = RetreatToFriend(u);
                                     answer.ActionRaw.UnitCommand.QueueCommand = false;
-                                    gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.RETREAT_TO_FRIEND });
-                                    break;
+                                    gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, cmd = SC2Action.RETREAT_TO_FRIEND, action = answer });
+                                    return answer;
                                 }
                             case TarranQLearningAction.NONE:
                                 {
-                                    gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, action = SC2Action.NONE });
+                                    gameState.AIActions.Add(new SC2UnitAction() { Tag = u.Tag, cmd = SC2Action.NONE, action = answer });
                                     break;
                                 }
 

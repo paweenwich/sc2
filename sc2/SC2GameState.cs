@@ -23,20 +23,23 @@ namespace sc2
     public class SC2UnitAction: ISC2SaveLoad
     {
         public ulong Tag = 0;
-        public SC2Action action = SC2Action.NONE;
+        public SC2Action cmd = SC2Action.NONE;
+        public SC2APIProtocol.Action action = new SC2APIProtocol.Action();
         public void Save(BinaryWriter b)
         {
             b.Write(Tag);
-            b.Write((int)action);
+            b.Write((int)cmd);
+            action.Save(b);
         }
         public void Load(BinaryReader b)
         {
             Tag = (ulong)b.ReadUInt64();
-            action = (SC2Action)b.ReadInt32();
+            cmd = (SC2Action)b.ReadInt32();
+            action.Load(b);
         }
         public override String ToString()
         {
-            return String.Format("{0} {1}", Tag, Enum.GetName(typeof(SC2Action), action));
+            return String.Format("{0} {1} {2}", Tag, Enum.GetName(typeof(SC2Action), cmd), action.ToStringEx());
         }
 
     }

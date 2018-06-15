@@ -104,8 +104,8 @@
             // loadGameStateToolStripMenuItem
             // 
             this.loadGameStateToolStripMenuItem.Name = "loadGameStateToolStripMenuItem";
-            this.loadGameStateToolStripMenuItem.Size = new System.Drawing.Size(194, 26);
-            this.loadGameStateToolStripMenuItem.Text = "Load GameState";
+            this.loadGameStateToolStripMenuItem.Size = new System.Drawing.Size(220, 26);
+            this.loadGameStateToolStripMenuItem.Text = "Load GameState List";
             this.loadGameStateToolStripMenuItem.Click += new System.EventHandler(this.loadGameStateToolStripMenuItem_Click);
             // 
             // mnuOption

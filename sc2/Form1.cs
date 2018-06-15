@@ -203,33 +203,56 @@ namespace sc2
             Graphics g = Graphics.FromImage(bmp);
             foreach (Unit u in units)
             {
-                g.DrawLine(SC2ExtendImageData.penWhite,u.Pos.X * scale , bmp.Height - ((u.Pos.Y - u.Radius) * scale), u.Pos.X* scale,bmp.Height - ((u.Pos.Y + u.Radius) * scale));
-                g.DrawLine(SC2ExtendImageData.penWhite,(u.Pos.X -u.Radius) * scale, bmp.Height - (u.Pos.Y  * scale), (u.Pos.X + u.Radius) *scale, bmp.Height - (u.Pos.Y * scale));
+                g.DrawLine(SC2ExtendImageData.penViolet2,u.Pos.X * scale , bmp.Height - ((u.Pos.Y - u.Radius) * scale), u.Pos.X* scale,bmp.Height - ((u.Pos.Y + u.Radius) * scale));
+                g.DrawLine(SC2ExtendImageData.penViolet2, (u.Pos.X -u.Radius) * scale, bmp.Height - (u.Pos.Y  * scale), (u.Pos.X + u.Radius) *scale, bmp.Height - (u.Pos.Y * scale));
             }
             g.Save();
             g.Dispose();
         }
 
-        public void DrawUnitAction(Bitmap bmp, Unit u, float scale, List<Unit> allUnit, ActionRawUnitCommand cmd)
+        public void DrawUnitAction(Bitmap bmp, Unit u, float scale, List<Unit> allUnit, ActionRawUnitCommand cmd, bool isAI = false)
         {
             Graphics g = Graphics.FromImage(bmp);
-            //g.DrawLine(SC2ExtendImageData.penWhite, u.Pos.X * scale, bmp.Height - ((u.Pos.Y - u.Radius) * scale), u.Pos.X * scale, bmp.Height - ((u.Pos.Y + u.Radius) * scale));
-            //g.DrawLine(SC2ExtendImageData.penWhite, (u.Pos.X - u.Radius) * scale, bmp.Height - (u.Pos.Y * scale), (u.Pos.X + u.Radius) * scale, bmp.Height - (u.Pos.Y * scale));
-            g.DrawString(Enum.GetName(typeof(ABILITY_ID), cmd.AbilityId), SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushBlack, u.Pos.X * scale + 1, bmp.Height - (u.Pos.Y * scale) - 5 + 1);
-            g.DrawString(Enum.GetName(typeof(ABILITY_ID), cmd.AbilityId), SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushYellow, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale) - 5);
-            Pen targetPen = SC2ExtendImageData.penBlack;
-            Point2D targetPoint = cmd.TargetWorldSpacePos;
-            if (cmd.TargetUnitTag != 0)
+            if (isAI)
             {
-                Unit targtUint = allUnit.GetUnit(cmd.TargetUnitTag);
-                if (targtUint != null)
+                if (cmd != null)
                 {
-                    targetPoint = targtUint.Pos.ToPoint2D();
+                    g.DrawString(Enum.GetName(typeof(ABILITY_ID), cmd.AbilityId), SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushWhite, u.Pos.X * scale + 1, bmp.Height - (u.Pos.Y * scale) - 5 + 1);
+                    g.DrawString(Enum.GetName(typeof(ABILITY_ID), cmd.AbilityId), SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushBlack, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale) - 5);
+                }else
+                {
+                    g.DrawString("None", SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushWhite, u.Pos.X * scale + 1, bmp.Height - (u.Pos.Y * scale) - 5 + 1);
+                    g.DrawString("None", SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushBlack, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale) - 5);
                 }
             }
-            if (targetPoint != null)
+            else
             {
-                g.DrawLine(targetPen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), targetPoint.X * scale, bmp.Height - (targetPoint.Y * scale));
+                if (cmd != null)
+                {
+                    g.DrawString(Enum.GetName(typeof(ABILITY_ID), cmd.AbilityId), SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushBlack, u.Pos.X * scale + 1, bmp.Height - (u.Pos.Y * scale) - 5 + 1);
+                    g.DrawString(Enum.GetName(typeof(ABILITY_ID), cmd.AbilityId), SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushYellow, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale) - 5);
+                }else
+                {
+                    g.DrawString("None", SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushBlack, u.Pos.X * scale + 1, bmp.Height - (u.Pos.Y * scale) - 5 + 1);
+                    g.DrawString("None", SC2ExtendImageData.drawFont, SC2ExtendImageData.drawBrushYellow, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale) - 5);
+                }
+            }
+            if (cmd != null)
+            {
+                Pen targetPen = SC2ExtendImageData.penBlack;
+                Point2D targetPoint = cmd.TargetWorldSpacePos;
+                if (cmd.TargetUnitTag != 0)
+                {
+                    Unit targtUint = allUnit.GetUnit(cmd.TargetUnitTag);
+                    if (targtUint != null)
+                    {
+                        targetPoint = targtUint.Pos.ToPoint2D();
+                    }
+                }
+                if (targetPoint != null)
+                {
+                    g.DrawLine(targetPen, u.Pos.X * scale, bmp.Height - (u.Pos.Y * scale), targetPoint.X * scale, bmp.Height - (targetPoint.Y * scale));
+                }
             }
             g.Save();
             g.Dispose();
@@ -273,6 +296,19 @@ namespace sc2
                     }
                 }
 
+            }
+            // Draw AI Action
+            if (gs.AIActions.Count > 0)
+            {
+                foreach (SC2UnitAction aiAction in gs.AIActions)
+                {
+                    Unit u = currentBot.allUnits.GetUnit(aiAction.Tag);
+                    if (u != null)
+                    {
+                        
+                        DrawUnitAction(bmpHeight, u, picScreenScale, currentBot.allUnits, aiAction.action.ActionRaw.UnitCommand,true);
+                    }
+                }
             }
             picScreen.Image = bmpHeight;
             //bmpHeight.Save("test.png");
