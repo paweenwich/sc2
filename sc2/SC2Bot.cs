@@ -581,6 +581,11 @@ namespace sc2
             return ret;
         }
 
+        public virtual List<Unit> GetMyBases()
+        {
+            throw new NotImplementedException();
+        }
+
         public List<Unit> GetMyUnits(UNIT_TYPEID unitType = UNIT_TYPEID.INVALID,bool countBuilding = false)
         {
             List<Unit> ret = new List<Unit>();

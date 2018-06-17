@@ -18,6 +18,11 @@ namespace sc2
             
         }
 
+        public override List<Unit> GetMyBases()
+        {
+            return myUnit.all.Where(u => (u.UnitType == (int)UNIT_TYPEID.TERRAN_COMMANDCENTER) || (u.UnitType == (int)UNIT_TYPEID.TERRAN_ORBITALCOMMAND)).ToList();
+        }
+
         public SC2APIProtocol.Action Stimpack(List<Unit> units)
         {
             SC2APIProtocol.Action answer = NewAction();
@@ -40,11 +45,36 @@ namespace sc2
             return null;
         }
 
+        public SC2APIProtocol.Action RetreatToChokePoint(Unit u)
+        {
+            SC2APIProtocol.Action answer = CreateAction(u, ABILITY_ID.MOVE);
+            List<Unit> CCs = GetMyBases();
+            Point2D pos = FindNearestRanmp(CCs[0]);
+            if (pos != null)
+            {
+                Point2D offset = rampData[pos].data["Rally"];
+                Point2D rallyPos = pos.Clone();
+                rallyPos.X += offset.X;
+                rallyPos.Y += offset.Y;
+                answer.ActionRaw.UnitCommand.TargetWorldSpacePos = rallyPos;
+
+            }else
+            {
+                answer.ActionRaw.UnitCommand.TargetWorldSpacePos = CCs[0].Pos.ToPoint2D();
+            }
+            return answer;
+        }
+
         public SC2APIProtocol.Action RetreatToFriend(Unit u)
         {
-            SC2APIProtocol.Action answer = NewAction();
-            answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
-            answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.MOVE;
+            //SC2APIProtocol.Action answer = NewAction();
+            //answer.ActionRaw.UnitCommand = new ActionRawUnitCommand();
+            //answer.ActionRaw.UnitCommand.AbilityId = (int)ABILITY_ID.MOVE;
+            SC2APIProtocol.Action answer = RetreatToChokePoint(u);
+            if (answer != null)
+            {
+                return answer;
+            }
             int index = rand.Next(myUnit.armyUnit.Count);
             //Unit targetUnit = myUnit.armyUnit.GetNearestUnit(u.Pos);
             answer.ActionRaw.UnitCommand.UnitTags.Add(u.Tag);
