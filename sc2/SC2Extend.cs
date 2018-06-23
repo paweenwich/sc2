@@ -28,6 +28,22 @@ namespace sc2
                           radius + radius, radius + radius);
         }
 
+        public static void DrawGrid(this Graphics g, Pen pen,Rectangle rect,int nx,int ny)
+        {
+            g.DrawRectangle(pen, rect);
+            int sx = rect.Width / nx;
+            int sy = rect.Height / ny;
+            for (int i = 1; i < nx; i++)
+            {
+                g.DrawLine(pen, rect.X + (i * sx), rect.Y, rect.X + (i * sx), rect.Bottom);
+            }
+            for (int i = 1; i < ny; i++)
+            {
+                g.DrawLine(pen, rect.Left, rect.Y + (i*sy), rect.Right, rect.Y + (i * sy));
+            }
+
+        }
+
         public static float Dist(this SC2APIProtocol.Point p1, SC2APIProtocol.Point p2)
         {
             return p1.Dist(p2.X, p2.Y);

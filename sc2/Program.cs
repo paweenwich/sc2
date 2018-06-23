@@ -27,7 +27,8 @@ namespace sc2
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form1());
+            //Application.Run(new Form1());
+            Application.Run(new RLForm());
         }
 
         public static IEnumerable<SC2APIProtocol.Action> MasterAgent_MainLoop(GameState gameState)
