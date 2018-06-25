@@ -18,8 +18,6 @@ namespace sc2
             InitializeComponent();
             picMain.Width = 500+1;
             picMain.Height = 500+1;
-            world.AddObject(new Me() { pos = { X = 1, Y = 1 }});
-            world.AddObject(new WorldObject() { pos = { X = 9, Y = 9 }, type = WorldObjectType.Target });
         }
 
         private void picMain_Paint(object sender, PaintEventArgs e)
@@ -28,6 +26,22 @@ namespace sc2
             //g.DrawLine(SC2ExtendImageData.penBlack, 0, 0, 500, 500);
             world.Draw(g, new Rectangle(0, 0, 500, 500));
             //g.DrawGrid(SC2ExtendImageData.penBlack, ,10,10);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                int num = 0;
+                while (!world.isEnd())
+                {
+                    world.Process();
+                    picMain.Refresh();
+                    num++;
+                }
+                world.Reset();
+                Console.WriteLine(num);
+            }
         }
     }
 
@@ -55,7 +69,7 @@ namespace sc2
 
     public enum WorldAction : int
     {
-        None = 0, UP, DOWN, LEFT, RIGHT
+        None = 0, UP, DOWN, LEFT, RIGHT, END,
     }
 
 
@@ -63,7 +77,7 @@ namespace sc2
     {
         public Random rand = new Random();
         public WorldAction[] actions = new WorldAction[] {
-            WorldAction.None, WorldAction.UP, WorldAction.DOWN, WorldAction.LEFT, WorldAction.RIGHT
+            WorldAction.None, WorldAction.UP, WorldAction.DOWN, WorldAction.LEFT, WorldAction.RIGHT, 
         };
 
         public Me()
@@ -74,14 +88,36 @@ namespace sc2
         {
             int index = rand.Next(actions.Length);
             WorldAction act = actions[index];
+            //Console.WriteLine(act.ToString());
             return act;
         }
     }
 
+    public class ReachTarget : WorldObject
+    {
+        public ReachTarget()
+        {
+            type = WorldObjectType.Target;
+        }
+        public override WorldAction Process(GridWorld world)
+        {
+            foreach(WorldObject obj in world.objects)
+            {
+                if (obj == this) continue;
+                if((obj.pos.X == this.pos.X) && (obj.pos.Y == this.pos.Y) )
+                {
+                    return WorldAction.END;
+                }
+            }
+            return WorldAction.None;
+        }
+
+    }
 
 
     public class GridWorld
     {
+        public bool worldEnd = false;
         public int nx;
         public int ny;
         public WorldData[,] data;
@@ -91,6 +127,7 @@ namespace sc2
             this.nx = nx;
             this.ny = ny;
             data = new WorldData[nx, ny];
+            Reset();
         }
         public void AddObject(WorldObject obj)
         {
@@ -98,10 +135,70 @@ namespace sc2
         }
         public void Process()
         {
-            foreach(WorldObject obj in objects)
+            foreach (WorldObject obj in objects)
             {
-                obj.Process(this);
+                WorldAction action = obj.Process(this);
+                if(action != WorldAction.None)
+                {
+                    DoAction(obj, action);
+                }
             }
+        }
+        public bool isEnd()
+        {
+            return worldEnd;
+        }
+        public void Reset()
+        {
+            worldEnd = false;
+            objects.Clear();
+            AddObject(new Me() { pos = { X = 1, Y = 1 } });
+            AddObject(new ReachTarget() { pos = { X = 8, Y = 8 } });
+        }
+        public void DoAction(WorldObject obj, WorldAction action)
+        {
+            switch (action)
+            {
+                case WorldAction.None: break;
+                case WorldAction.UP:
+                    {
+                        if(obj.pos.Y > 0)
+                        {
+                            obj.pos.Y--;
+                        }
+                        break;
+                    }
+                case WorldAction.DOWN:
+                    {
+                        if (obj.pos.Y < ny -1)
+                        {
+                            obj.pos.Y++;
+                        }
+                        break;
+                    }
+                case WorldAction.LEFT:
+                    {
+                        if (obj.pos.X > 0)
+                        {
+                            obj.pos.X--;
+                        }
+                        break;
+                    }
+                case WorldAction.RIGHT:
+                    {
+                        if (obj.pos.X < nx - 1)
+                        {
+                            obj.pos.X++;
+                        }
+                        break;
+                    }
+                case WorldAction.END:
+                    {
+                        worldEnd = true;
+                        break;
+                    }
+            }
+
         }
         public void Draw(Graphics g, Rectangle rect)
         {
