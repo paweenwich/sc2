@@ -72,8 +72,8 @@ namespace sc2
             Me me = new Me() { pos = { X = 1, Y = 1 } };
             ReachTarget target = new ReachTarget() { pos = { X = 8, Y = 8 } };
             learningAgent = me.learningAgent;
-
-            for (int i = 0; i < 1000; i++)
+            List<int> nums = new List<int>();
+            for (int i = 0; i < 200; i++)
             {
 
                 world.Reset();
@@ -92,11 +92,13 @@ namespace sc2
                     //picMain.Refresh();
                     num++;
                 }
+                nums.Add(num);
                 //Console.WriteLine(world.objects[0].ToString());
                 //Console.WriteLine(num);
                 //break;
             }
             picMain.Refresh();
+            Console.WriteLine(nums.ToStringEx().Replace(","," ").Replace("{","").Replace("}",""));
         }
 
         private void chkEView_CheckedChanged(object sender, EventArgs e)
@@ -200,6 +202,7 @@ namespace sc2
         public int numActions;
         public float learningRate = 0.1f;
         public float epsilon = 0.9f;
+        public float discountFactor = 0.9f;
         public Dictionary<float[], float[]> qTable = new Dictionary<float[], float[]>(new StateComparer());
         public Dictionary<float[], float[]> eTable = new Dictionary<float[], float[]>(new StateComparer());
         public float[] prevState;
@@ -253,10 +256,24 @@ namespace sc2
                 qTable.Add(state, values.ToArray());
             }
         }
+        public void EnsureETable(float[] state)
+        {
+            if (!eTable.ContainsKey(state))
+            {
+                List<float> values = new List<float>();
+                for (int i = 0; i < numActions; i++)
+                {
+                    values.Add(0);
+                }
+                eTable.Add(state, values.ToArray());
+            }
+        }
         public void UpdateQTable(float[] state, int action, float q)
         {
             EnsureQTable(state);
-            qTable[state][action] = ((1 - learningRate) * qTable[state][action]) + ((learningRate) * q);
+            //qTable[state][action] = ((1 - learningRate) * qTable[state][action]) + ((learningRate) * q);
+            qTable[state][action] = ((1 - learningRate) * qTable[state][action]) + ((learningRate) * q * eTable[state][action]);
+            //eTable[state][action] = eTable[state][action] * discountFactor;
         }
         public float[] GetValues(float[] state)
         {
@@ -271,17 +288,7 @@ namespace sc2
         }
         public void UpdateETable(float[] state, int action)
         {
-            if (!eTable.ContainsKey(state))
-            {
-                // create zero one
-                List<float> values = new List<float>();
-                for (int i = 0; i < numActions; i++)
-                {
-                    values.Add(0);
-                }
-                //Console.WriteLine("New State " + state.ToString());
-                eTable.Add(state, values.ToArray());
-            }
+            EnsureETable(state);
             eTable[state][action] += 1;
         }
         public int Process(float[] state)
@@ -295,8 +302,26 @@ namespace sc2
         public void Learn(float[] state,float currentReward)
         {
             int action = GetNextAction(state);
-            float q = (float)(currentReward + 0.9 * GetValue(state, action) - GetValue(prevState, prevAction));
-            UpdateQTable(prevState, prevAction, q);
+            float q = (float)(currentReward + discountFactor * GetValue(state, action) - GetValue(prevState, prevAction));
+            //UpdateQTable(prevState, prevAction, q);
+            // Deval qTable
+            foreach (float[] s in qTable.Keys)
+            {
+                EnsureETable(s);
+                float[] data = qTable[s];
+                for (int i = 0; i < data.Length; i++)
+                {
+                    data[i] = data[i] + eTable[s][i] * learningRate * q;
+                }
+            }
+            // Decay eTable
+            foreach (float[] data in eTable.Values)
+            {
+                for(int i = 0; i < data.Length; i++)
+                {
+                    data[i] = data[i] * discountFactor;
+                }
+            }
         }
         public override String ToString()
         {
