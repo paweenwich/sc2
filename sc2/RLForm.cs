@@ -12,7 +12,9 @@ namespace sc2
 {
     public partial class RLForm : Form
     {
+        public Font drawFont = new Font("Arial", 8);
         GridWorld world = new GridWorld(10, 10);
+        LearningAgent learningAgent;
         public RLForm()
         {
             InitializeComponent();
@@ -25,23 +27,81 @@ namespace sc2
             Graphics g = e.Graphics;
             //g.DrawLine(SC2ExtendImageData.penBlack, 0, 0, 500, 500);
             world.Draw(g, new Rectangle(0, 0, 500, 500));
+            if (learningAgent != null)
+            {
+                if (chkEView.Checked)
+                {
+                    Bound bound = learningAgent.GetBound(learningAgent.eTable);
+                    foreach (float[] state in learningAgent.eTable.Keys)
+                    {
+                        Rectangle rect = world.GetRect((int)state[0], (int)state[1], new Rectangle(0, 0, 500, 500));
+                        float[] eData = learningAgent.eTable[state];
+                        float eMax = eData.Max();
+                        int eMaxIndex = eData.ToList().IndexOf(eMax);
+                        WorldAction act = Me.IndexToAction(eMaxIndex);
+                        int c = (int)bound.map(eMax, 0, 255);
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(c,c,c)),rect);
+                        g.DrawString(String.Format("{0:0.00}", eMax), drawFont, rect.Left, rect.Top);
+                        g.DrawString(String.Format("{0}", act.ToString()), drawFont, rect.Left, rect.Top + 12);
+
+                    }
+                }
+                else
+                {
+                    Bound bound = learningAgent.GetBound(learningAgent.qTable);
+                    foreach (float[] state in learningAgent.qTable.Keys)
+                    {
+                        Rectangle rect = world.GetRect((int)state[0], (int)state[1], new Rectangle(0, 0, 500, 500));
+                        float[] qData = learningAgent.qTable[state];
+                        float qMax = qData.Max();
+                        int qMaxIndex = qData.ToList().IndexOf(qMax);
+                        WorldAction act = Me.IndexToAction(qMaxIndex);
+                        int c = (int)bound.map(qMax, 0, 255);
+                        g.FillRectangle(new SolidBrush(Color.FromArgb(c, c, c)), rect);
+                        g.DrawString(String.Format("{0:0.00}", qMax), drawFont, rect.Left, rect.Top);
+                        g.DrawString(String.Format("{0}", act.ToString()), drawFont, rect.Left, rect.Top + 12);
+
+                    }
+                }
+            }
             //g.DrawGrid(SC2ExtendImageData.penBlack, ,10,10);
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < 10; i++)
+            Me me = new Me() { pos = { X = 1, Y = 1 } };
+            ReachTarget target = new ReachTarget() { pos = { X = 8, Y = 8 } };
+            learningAgent = me.learningAgent;
+
+            for (int i = 0; i < 1000; i++)
             {
+
+                world.Reset();
+                me.Reset();
+                learningAgent.Reset();
+                me.learningAgent = learningAgent;
+                me.pos = new Point{ X = 1, Y = 1 };
+                //world.AddObject(new Me() { pos = { X = 1, Y = 1 } });
+                world.AddObject(me);
+                world.AddObject(target);
                 int num = 0;
                 while (!world.isEnd())
                 {
                     world.Process();
-                    picMain.Refresh();
+                    world.Learn();
+                    //picMain.Refresh();
                     num++;
                 }
-                world.Reset();
-                Console.WriteLine(num);
+                //Console.WriteLine(world.objects[0].ToString());
+                //Console.WriteLine(num);
+                //break;
             }
+            picMain.Refresh();
+        }
+
+        private void chkEView_CheckedChanged(object sender, EventArgs e)
+        {
+            picMain.Refresh();
         }
     }
 
@@ -59,12 +119,42 @@ namespace sc2
 
     public class WorldObject
     {
+        //public static Random rand = new Random(1414);
         public Point pos;
         public WorldObjectType type;
+        public float reward = 0;
+        public float prevReward = 0;
+        public WorldObject()
+        {
+            //rand = new Random(this.GetHashCode());
+        }
+        public virtual void Reset()
+        {
+            reward = 0;
+            prevReward = 0;
+        }
         public virtual WorldAction Process(GridWorld world)
         {
             return 0;
         }
+        public virtual void Learn(GridWorld world)
+        {
+        }
+        public virtual float[] GetValues(float[] state)
+        {
+            return new float[0];
+        }
+
+        public void Reward(float value)
+        {
+            prevReward = reward;
+            reward += value;
+        }
+        public float CurrentReward()
+        {
+            return reward - prevReward;
+        }
+
     }
 
     public enum WorldAction : int
@@ -72,24 +162,192 @@ namespace sc2
         None = 0, UP, DOWN, LEFT, RIGHT, END,
     }
 
+    public class StateComparer : IEqualityComparer<float[]>
+    {
+        public bool Equals(float[] x, float[] y)
+        {
+            for(int i = 0; i < y.Length; i++)
+            {
+                if (x[i] != y[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public int GetHashCode(float[] x)
+        {
+            return (int)(x.Sum()*100000);
+        }
+
+
+    }
+
+    public class Bound
+    {
+        public float min = 1000000;
+        public float max = -100000;
+        public float map(float value, float toMin, float toMax)
+        {
+            return ((value - min) / (max - min)) * (toMax - toMin) + toMin;
+        }
+
+    }
+    public class LearningAgent
+    {
+        public Random rand;
+        public int numActions;
+        public float learningRate = 0.1f;
+        public float epsilon = 0.9f;
+        public Dictionary<float[], float[]> qTable = new Dictionary<float[], float[]>(new StateComparer());
+        public Dictionary<float[], float[]> eTable = new Dictionary<float[], float[]>(new StateComparer());
+        public float[] prevState;
+        public int prevAction;
+        public LearningAgent(int numActions)
+        {
+            this.numActions = numActions;
+            rand = new Random(this.GetHashCode());
+            Reset();
+        }
+        public void Reset()
+        {
+            prevState = null;
+            prevAction = 0;
+        }
+        public Bound GetBound(Dictionary<float[], float[]> tab)
+        {
+            Bound ret = new Bound();
+            foreach(float[] data in tab.Values)
+            {
+                ret.max = Math.Max(ret.max, data.Max());
+                ret.min = Math.Min(ret.min, data.Min());
+            }
+            return ret;
+        }
+        public int GetNextAction(float[] state) //Epsilon greedy
+        {
+            int action;
+            if (rand.NextDouble() > epsilon)
+            {
+                action = rand.Next(numActions);
+            }else
+            {
+                float[] values = GetValues(state);
+                float maxValue = values.Max();
+                action = values.ToList().IndexOf(maxValue);
+            }
+            return action;
+        }
+        public void EnsureQTable(float[] state)
+        {
+            if (!qTable.ContainsKey(state))
+            {
+                // create random one
+                List<float> values = new List<float>();
+                for (int i = 0; i < numActions; i++)
+                {
+                    values.Add((float)rand.NextDouble());
+                }
+                //Console.WriteLine("New State " + state.ToString());
+                qTable.Add(state, values.ToArray());
+            }
+        }
+        public void UpdateQTable(float[] state, int action, float q)
+        {
+            EnsureQTable(state);
+            qTable[state][action] = ((1 - learningRate) * qTable[state][action]) + ((learningRate) * q);
+        }
+        public float[] GetValues(float[] state)
+        {
+            EnsureQTable(state);
+            return qTable[state];
+        }
+
+        public float GetValue(float[] state, int action)
+        {
+            float[] values = GetValues(state);
+            return values[action];
+        }
+        public void UpdateETable(float[] state, int action)
+        {
+            if (!eTable.ContainsKey(state))
+            {
+                // create zero one
+                List<float> values = new List<float>();
+                for (int i = 0; i < numActions; i++)
+                {
+                    values.Add(0);
+                }
+                //Console.WriteLine("New State " + state.ToString());
+                eTable.Add(state, values.ToArray());
+            }
+            eTable[state][action] += 1;
+        }
+        public int Process(float[] state)
+        {
+            prevState = state;
+            int action = GetNextAction(state);
+            prevAction = action;
+            UpdateETable(prevState, prevAction);
+            return action;
+        }
+        public void Learn(float[] state,float currentReward)
+        {
+            int action = GetNextAction(state);
+            float q = (float)(currentReward + 0.9 * GetValue(state, action) - GetValue(prevState, prevAction));
+            UpdateQTable(prevState, prevAction, q);
+        }
+        public override String ToString()
+        {
+            return String.Format("QTable {0} ETable {1}", qTable.Count(), eTable.Count());
+        }
+    }
+
 
     public class Me : WorldObject
     {
-        public Random rand = new Random();
-        public WorldAction[] actions = new WorldAction[] {
+        public LearningAgent learningAgent;
+        public static WorldAction[] actions = new WorldAction[] {
             WorldAction.None, WorldAction.UP, WorldAction.DOWN, WorldAction.LEFT, WorldAction.RIGHT, 
         };
-
         public Me()
         {
             type = WorldObjectType.Me;
+            learningAgent = new LearningAgent(actions.Length);
+        }
+        public WorldAction GetNextAction(float[] state)
+        {
+            float[] values = GetValues(state);
+            float maxValue = values.Max();
+            int index = values.ToList().IndexOf(maxValue);
+            return IndexToAction(index);
+        }
+        public static int ActionToIndex(WorldAction act)
+        {
+            return actions.ToList().IndexOf(act);
+        }
+        public static WorldAction IndexToAction(int index)
+        {
+            return actions[index];
         }
         public override WorldAction Process(GridWorld world)
         {
-            int index = rand.Next(actions.Length);
-            WorldAction act = actions[index];
-            //Console.WriteLine(act.ToString());
-            return act;
+            float[] state = world.GetState();
+            int index =  learningAgent.Process(state);
+            return IndexToAction(index);
+
+        }
+        public override void Learn(GridWorld world)
+        {
+            float[] currentState = world.GetState();
+            float currentReward = CurrentReward();
+            learningAgent.Learn(currentState, currentReward);
+        }
+
+        public override String ToString()
+        {
+            return String.Format("{0} {1}",learningAgent.ToString(),reward);
         }
     }
 
@@ -106,8 +364,10 @@ namespace sc2
                 if (obj == this) continue;
                 if((obj.pos.X == this.pos.X) && (obj.pos.Y == this.pos.Y) )
                 {
+                    obj.Reward(1000);
                     return WorldAction.END;
                 }
+                obj.Reward(-1);
             }
             return WorldAction.None;
         }
@@ -133,6 +393,17 @@ namespace sc2
         {
             objects.Add(obj);
         }
+        public float[] GetState()
+        {
+            List<float> ret = new List<float>();
+            // Simple X and Y of each object
+            foreach (WorldObject obj in objects)
+            {
+                ret.Add(obj.pos.X);
+                ret.Add(obj.pos.Y);
+            }
+            return ret.ToArray();
+        }
         public void Process()
         {
             foreach (WorldObject obj in objects)
@@ -144,6 +415,13 @@ namespace sc2
                 }
             }
         }
+        public void Learn()
+        {
+            foreach (WorldObject obj in objects)
+            {
+                obj.Learn(this);
+            }
+        }
         public bool isEnd()
         {
             return worldEnd;
@@ -152,8 +430,8 @@ namespace sc2
         {
             worldEnd = false;
             objects.Clear();
-            AddObject(new Me() { pos = { X = 1, Y = 1 } });
-            AddObject(new ReachTarget() { pos = { X = 8, Y = 8 } });
+            //AddObject(new Me(learningAgent) { pos = { X = 1, Y = 1 } });
+            //AddObject(new ReachTarget() { pos = { X = 8, Y = 8 } });
         }
         public void DoAction(WorldObject obj, WorldAction action)
         {
@@ -199,6 +477,12 @@ namespace sc2
                     }
             }
 
+        }
+        public Rectangle GetRect(int x,int y, Rectangle rect)
+        {
+            int sx = (rect.Width / nx);
+            int sy = (rect.Height / ny);
+            return new Rectangle(x * sx, y * sy, sx, sy);
         }
         public void Draw(Graphics g, Rectangle rect)
         {

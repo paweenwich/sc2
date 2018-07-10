@@ -28,6 +28,13 @@ namespace sc2
                           radius + radius, radius + radius);
         }
 
+        public static void DrawString(this Graphics g, String data, Font font, float x,float y)
+        {
+            g.DrawString(data, font, SC2ExtendImageData.drawBrushBlack, x, y);
+            g.DrawString(data, font, SC2ExtendImageData.drawBrushWhite, x + 1, y + 1);
+        }
+
+
         public static void DrawGrid(this Graphics g, Pen pen,Rectangle rect,int nx,int ny)
         {
             g.DrawRectangle(pen, rect);

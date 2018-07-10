@@ -45,7 +45,7 @@ namespace sc2
 
         public static String ToStringEx(this Unit self)
         {
-          return self.ToSimpleString() + " " + self.ToString();
+            return self.ToSimpleString() + " " + self.ToString();
         }
 
         public static String ToSimpleString(this Unit self)
@@ -81,7 +81,7 @@ namespace sc2
 
         public static bool IsBaseBuilding(this Unit u)
         {
-            if ((u.UnitType == (uint)UNIT_TYPEID.TERRAN_COMMANDCENTER) || (u.UnitType == (uint)UNIT_TYPEID.PROTOSS_NEXUS) 
+            if ((u.UnitType == (uint)UNIT_TYPEID.TERRAN_COMMANDCENTER) || (u.UnitType == (uint)UNIT_TYPEID.PROTOSS_NEXUS)
                 || (u.UnitType == (uint)UNIT_TYPEID.ZERG_HATCHERY) || (u.UnitType == (uint)UNIT_TYPEID.ZERG_LAIR) || (u.UnitType == (uint)UNIT_TYPEID.ZERG_HIVE))
             {
                 return true;
@@ -121,7 +121,7 @@ namespace sc2
             return false;
         }
 
-        public static void SetPos(this Unit u,float x,float y)
+        public static void SetPos(this Unit u, float x, float y)
         {
             u.Pos.X = x;
             u.Pos.Y = y;
@@ -196,9 +196,9 @@ namespace sc2
             }
             KMeans kmeans = new KMeans(k: gas.Count / 2);
             KMeansClusterCollection clusters = kmeans.Learn(data);
-            for(int i = 0; i < kmeans.Centroids.Length; i++)
+            for (int i = 0; i < kmeans.Centroids.Length; i++)
             {
-                ret.Add(new Point2D {X = (float)kmeans.Centroids[i][0], Y = (float)kmeans.Centroids[i][1] });
+                ret.Add(new Point2D { X = (float)kmeans.Centroids[i][0], Y = (float)kmeans.Centroids[i][1] });
             }
             return ret;
         }
@@ -208,22 +208,22 @@ namespace sc2
             return (self.FirstOrDefault(u => u.HasOrder(ability)) != null);
         }
 
-        public static List<Unit> GetUnitInRange(this Unit self,List<Unit> units, float range = 12.0f)
+        public static List<Unit> GetUnitInRange(this Unit self, List<Unit> units, float range = 12.0f)
         {
-            return units.Where(u => (u!= self) && (self.Pos.Dist(u.Pos) <= range)).ToList();
+            return units.Where(u => (u != self) && (self.Pos.Dist(u.Pos) <= range)).ToList();
         }
 
         public static List<Unit> GetUnitInRange(this List<Unit> self, List<Unit> units, float range = 12.0f)
         {
             HashSet<Unit> unitOut = new HashSet<Unit>();
-            foreach(Unit u in self)
+            foreach (Unit u in self)
             {
                 unitOut.UnionWith(new HashSet<Unit>(u.GetUnitInRange(units, range)));
             }
             return unitOut.ToList();
         }
 
-        public static Unit GetUnit(this List<Unit> self,ulong tag)
+        public static Unit GetUnit(this List<Unit> self, ulong tag)
         {
             return self.FirstOrDefault(u => u.Tag == tag);
         }
@@ -232,7 +232,7 @@ namespace sc2
         {
             Unit ret = self.MinBy(u => u.Pos.Dist(pos));
             float dist = ret.Pos.Dist(pos);
-            if(dist <= ret.Radius)
+            if (dist <= ret.Radius)
             {
                 return ret;
             }
@@ -245,6 +245,16 @@ namespace sc2
             return ret;
         }
 
-
+        public static String ToStringEx(this float[] self)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("[");
+            foreach (float t in self)
+            {
+                sb.Append(String.Format(" {0:0.0000}",t));
+            }
+            sb.Append("]");
+            return sb.ToString();
+        }
     }
 }

@@ -30,6 +30,7 @@
         {
             this.picMain = new System.Windows.Forms.PictureBox();
             this.button1 = new System.Windows.Forms.Button();
+            this.chkEView = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.picMain)).BeginInit();
             this.SuspendLayout();
             // 
@@ -52,17 +53,30 @@
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
+            // chkEView
+            // 
+            this.chkEView.AutoSize = true;
+            this.chkEView.Location = new System.Drawing.Point(93, 14);
+            this.chkEView.Name = "chkEView";
+            this.chkEView.Size = new System.Drawing.Size(75, 21);
+            this.chkEView.TabIndex = 2;
+            this.chkEView.Text = "ETable";
+            this.chkEView.UseVisualStyleBackColor = true;
+            this.chkEView.CheckedChanged += new System.EventHandler(this.chkEView_CheckedChanged);
+            // 
             // RLForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(716, 606);
+            this.Controls.Add(this.chkEView);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.picMain);
             this.Name = "RLForm";
             this.Text = "RLForm";
             ((System.ComponentModel.ISupportInitialize)(this.picMain)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -70,5 +84,6 @@
 
         private System.Windows.Forms.PictureBox picMain;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.CheckBox chkEView;
     }
 }
