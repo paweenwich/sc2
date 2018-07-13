@@ -239,6 +239,17 @@ namespace sc2
             return ret;
         }
 
+        public static float Dist(this float[] s1, float[] s2)
+        {
+            float ret = 0;
+            for (int i = 0; i < s1.Length; i++)
+            {
+                float dx = s1[i] - s2[i];
+                ret += dx * dx;
+            }
+            return (float)Math.Sqrt(ret);
+        }
+
     }
 
 }

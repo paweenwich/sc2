@@ -58,18 +58,36 @@ namespace sc2
             }
             return action;
         }
+        public float[] RandomActions()
+        {
+            List<float> values = new List<float>();
+            for (int i = 0; i < numActions; i++)
+            {
+                values.Add((float)rand.NextDouble());
+            }
+            return values.ToArray();
+        }
+        /*public float[] GetActionFromNearestState(float[] state)
+        {
+            float[] ret = RandomActions();
+            float minDist = 1000000000;
+            foreach(float[] s in qTable.Keys)
+            {
+                float dist = state.Dist(s);
+                if(dist < minDist)
+                {
+                    ret = qTable[s];
+                    minDist = dist;
+                }
+            }
+            return ret;
+        }*/
         public void EnsureQTable(float[] state)
         {
             if (!qTable.ContainsKey(state))
             {
-                // create random one
-                List<float> values = new List<float>();
-                for (int i = 0; i < numActions; i++)
-                {
-                    values.Add((float)rand.NextDouble());
-                }
-                //Console.WriteLine("New State " + state.ToString());
-                qTable.Add(state, values.ToArray());
+                qTable.Add(state, RandomActions());
+                //qTable.Add(state, GetActionFromNearestState(state));
             }
         }
         public float[] GetValues(float[] state)

@@ -126,6 +126,7 @@ namespace sc2
         }
         public override WorldAction Process(GridWorld world)
         {
+            Reward(-1);
             float[] state = world.GetState();
             int index = learningAgent.Process(state);
             return IndexToAction(index);
@@ -188,7 +189,7 @@ namespace sc2
         {
             objects.Add(obj);
         }
-        public float[] GetState()
+        public virtual float[] GetState()
         {
             List<float> ret = new List<float>();
             // Simple X and Y of each object
@@ -198,6 +199,10 @@ namespace sc2
                 ret.Add(obj.pos.Y);
             }
             return ret.ToArray();
+        }
+        public virtual Point StateToXY(float[] state)
+        {
+            return new Point((int)state[0], (int)state[1]);
         }
         public void Process()
         {
@@ -225,8 +230,6 @@ namespace sc2
         {
             worldEnd = false;
             objects.Clear();
-            //AddObject(new Me(learningAgent) { pos = { X = 1, Y = 1 } });
-            //AddObject(new ReachTarget() { pos = { X = 8, Y = 8 } });
         }
         public void DoAction(WorldObject obj, WorldAction action)
         {
@@ -239,6 +242,7 @@ namespace sc2
                         {
                             obj.pos.Y--;
                         }
+                        obj.Reward(-1);
                         break;
                     }
                 case WorldAction.DOWN:
@@ -247,6 +251,7 @@ namespace sc2
                         {
                             obj.pos.Y++;
                         }
+                        obj.Reward(-1);
                         break;
                     }
                 case WorldAction.LEFT:
@@ -263,6 +268,7 @@ namespace sc2
                         {
                             obj.pos.X++;
                         }
+                        obj.Reward(-1);
                         break;
                     }
                 case WorldAction.END:
@@ -298,22 +304,32 @@ namespace sc2
         public void Draw(Graphics g, Rectangle rect)
         {
             g.DrawGrid(SC2ExtendImageData.penBlack, rect, nx, ny);
-            int sx = (rect.Width / nx);
-            int sy = (rect.Height / ny);
-            for (int x = 0; x < nx; x++)
-            {
-                for (int y = 0; y < ny; y++)
-                {
-                    Brush brush = SC2ExtendImageData.drawBrushYellow;
-                    switch (data[x, y])
-                    {
-                        case WorldData.Block: brush = SC2ExtendImageData.drawBrushBlack; break;
-                        case WorldData.Moveable: brush = SC2ExtendImageData.drawBrushWhite; break;
-                    }
-                    g.FillRectangle(brush, rect.Left + 1 + x * sx, rect.Top + 1 + y * sy, sx - 2, sy - 2);
-                }
-            }
+            DrawObject(g,rect);
+        }
+    }
 
+    public class GridWorld2: GridWorld
+    {
+        public GridWorld2(int nx, int ny): base(nx,ny)
+        {
+
+        }
+        public override float[] GetState()
+        {
+            List<float> ret = new List<float>();
+            // Simple X and Y of each object
+            foreach (WorldObject obj in objects)
+            {
+                ret.Add(obj.pos.X*100 + obj.pos.Y);
+                //ret.Add();
+            }
+            return ret.ToArray();
+        }
+        public override Point StateToXY(float[] state)
+        {
+            int x = (int)(state[0] / 100);
+            int y = (int)(state[0] % 100);
+            return new Point(x,y);
         }
     }
 
